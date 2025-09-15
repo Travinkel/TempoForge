@@ -3,7 +3,9 @@ import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider, Link } from 'react-router-dom'
 import './index.css'
 
-const API_BASE = (import.meta as any).env.VITE_API_BASE_URL || 'http://localhost:8080'
+console.log("API base:", import.meta.env.VITE_API_BASE_URL);
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:5000";
 
 function Layout({ children }: { children: React.ReactNode }) {
   return (
