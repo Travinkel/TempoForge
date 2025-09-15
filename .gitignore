@@ -1,5 +1,30 @@
+# .NET build
 bin/
 obj/
+*.user
+*.DotSettings.user
+
+# Test results
+TestResults/
+
+# React build
+client/tempoforge-web/node_modules/
+client/tempoforge-web/dist/
+
+
+
+# Env files
+*.env
+*.env.*
+
+# Lockfiles (optional: if you don’t want to pin dependencies)
+client/tempoforge-web/package-lock.json
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
