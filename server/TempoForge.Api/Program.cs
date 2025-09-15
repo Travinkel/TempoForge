@@ -28,6 +28,14 @@ builder.Services.AddCors(o => o.AddPolicy("web", p => p
 
 var app = builder.Build();
 
+// Auto-apply migrations in Development
+if (app.Environment.IsDevelopment())
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
+    db.Database.Migrate();
+}
+
 app.UseCors("web");
 
 app.UseSwagger();

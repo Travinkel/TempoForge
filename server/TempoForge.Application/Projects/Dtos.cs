@@ -15,6 +15,16 @@ public class ProjectCreateDto
     public bool Pinned { get; set; }
 }
 
+public class ProjectUpdateDto
+{
+    [StringLength(80, MinimumLength = 3)]
+    public string? Name { get; set; }
+
+    public Track? Track { get; set; }
+
+    public bool? Pinned { get; set; }
+}
+
 public class ProjectDto
 {
     public Guid Id { get; set; }

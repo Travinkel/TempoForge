@@ -10,46 +10,77 @@ namespace TempoForge.Api.Controllers;
 [Route("api/[controller]")]
 public class ProjectsController : ControllerBase
 {
-    private readonly IProjectService _service;
-    private readonly TempoForgeDbContext _db; // For simple queries if needed
-    public ProjectsController(IProjectService service, TempoForgeDbContext db)
-    {
-        _service = service; _db = db;
-    }
+	private readonly IProjectService _service;
+	private readonly TempoForgeDbContext _db; // For simple queries if needed
+	public ProjectsController(IProjectService service, TempoForgeDbContext db)
+	{
+		_service = service; _db = db;
+	}
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetAll(CancellationToken ct)
-    {
-        var items = await _service.GetAllAsync(ct);
-        return Ok(items.Select(ProjectDto.From));
-    }
+	[HttpGet]
+	public async Task<ActionResult<IEnumerable<ProjectDto>>> GetAll(CancellationToken ct)
+	{
+		var items = await _service.GetAllAsync(ct);
+		return Ok(items.Select(ProjectDto.From));
+	}
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<ProjectDto>> Get(Guid id, CancellationToken ct)
-    {
-        var p = await _service.GetAsync(id, ct);
-        return p is null ? NotFound() : Ok(ProjectDto.From(p));
-    }
+	[HttpGet("{id:guid}")]
+	public async Task<ActionResult<ProjectDto>> Get(Guid id, CancellationToken ct)
+	{
+		var p = await _service.GetAsync(id, ct);
+		return p is null ? NotFound() : Ok(ProjectDto.From(p));
+	}
 
-    [HttpPost]
-    public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectCreateDto dto, CancellationToken ct)
-    {
-        if (!ModelState.IsValid) return ValidationProblem(ModelState);
-        var p = await _service.CreateAsync(dto, ct);
-        return CreatedAtAction(nameof(Get), new { id = p.Id }, ProjectDto.From(p));
-    }
+	[HttpPost]
+	public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectCreateDto dto, CancellationToken ct)
+	{
+		if (!ModelState.IsValid) return ValidationProblem(ModelState);
+		try
+		{
+			var p = await _service.CreateAsync(dto, ct);
+			return CreatedAtAction(nameof(Get), new { id = p.Id }, ProjectDto.From(p));
+		}
+		catch (ArgumentException ex)
+		{
+			return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+			{
+				[ex.ParamName ?? ""] = new[] { ex.Message }
+			})
+			{
+				Title = "Validation failed",
+				Detail = ex.Message,
+				Status = StatusCodes.Status400BadRequest
+			});
+		}
+	}
 
-    [HttpPut("{id:guid}")]
-    public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectCreateDto dto, CancellationToken ct)
-    {
-        var p = await _service.UpdateAsync(id, dto, ct);
-        return p is null ? NotFound() : Ok(ProjectDto.From(p));
-    }
+	[HttpPut("{id:guid}")]
+	public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectUpdateDto dto, CancellationToken ct)
+	{
+		if (!ModelState.IsValid) return ValidationProblem(ModelState);
+		try
+		{
+			var p = await _service.UpdateAsync(id, dto, ct);
+			return p is null ? NotFound() : Ok(ProjectDto.From(p));
+		}
+		catch (ArgumentException ex)
+		{
+			return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
+			{
+				[ex.ParamName ?? ""] = new[] { ex.Message }
+			})
+			{
+				Title = "Validation failed",
+				Detail = ex.Message,
+				Status = StatusCodes.Status400BadRequest
+			});
+		}
+	}
 
-    [HttpDelete("{id:guid}")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
-    {
-        var ok = await _service.DeleteAsync(id, ct);
-        return ok ? NoContent() : NotFound();
-    }
+	[HttpDelete("{id:guid}")]
+	public async Task<IActionResult> Delete(Guid id, CancellationToken ct)
+	{
+		var ok = await _service.DeleteAsync(id, ct);
+		return ok ? NoContent() : NotFound();
+	}
 }

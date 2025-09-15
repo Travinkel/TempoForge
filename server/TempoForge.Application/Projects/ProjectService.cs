@@ -34,7 +34,7 @@ public class ProjectService : IProjectService
     public async Task<List<Project>> GetAllAsync(CancellationToken ct)
         => await _db.Projects.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
 
-    public async Task<Project?> UpdateAsync(Guid id, ProjectCreateDto dto, CancellationToken ct)
+    public async Task<Project?> UpdateAsync(Guid id, ProjectUpdateDto dto, CancellationToken ct)
     {
         var p = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
         if (p is null) return null;
@@ -45,7 +45,7 @@ public class ProjectService : IProjectService
             p.Name = name;
         }
         if (dto.Track is not null) p.Track = dto.Track.Value;
-        p.Pinned = dto.Pinned;
+        if (dto.Pinned.HasValue) p.Pinned = dto.Pinned.Value;
         await _db.SaveChangesAsync(ct);
         return p;
     }
