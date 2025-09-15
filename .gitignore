@@ -28,3 +28,12 @@ Thumbs.db
 /packages/
 riderModule.iml
 /_ReSharper.Caches/
+
+# Build artifacts
+bin/
+obj/
+
+# Rider/VS/IDEA settings
+.idea/
+*.user
+*.DotSettings.user
