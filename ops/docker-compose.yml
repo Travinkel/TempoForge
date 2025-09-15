@@ -1,0 +1,33 @@
+﻿services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: tempo
+      POSTGRES_PASSWORD: tempo
+      POSTGRES_DB: tempo
+    ports: ["5432:5432"]
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: ..
+      dockerfile: TempoForge.Api/Dockerfile
+    environment:
+      ConnectionStrings__Default: Host=db;Database=tempo;Username=tempo;Password=tempo
+      ClientOrigin: http://localhost:5173
+      ASPNETCORE_ENVIRONMENT: Development
+    ports: ["8080:8080"]
+    depends_on: [db]
+
+  web:
+    build:
+      context: ../client/tempoforge-web
+      dockerfile: Dockerfile
+    environment:
+      VITE_API_BASE_URL: http://localhost:8080
+    ports: ["5173:80"]
+    depends_on: [api]
+
+volumes:
+  dbdata: {}
