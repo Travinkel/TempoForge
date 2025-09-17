@@ -10,9 +10,10 @@ public class ProjectCreateDto
     public string Name { get; set; } = string.Empty;
 
     [Required]
+    [EnumDataType(typeof(Track))]
     public Track? Track { get; set; }
 
-    public bool Pinned { get; set; }
+    public bool Pinned { get; set; } = false;
 }
 
 public class ProjectUpdateDto

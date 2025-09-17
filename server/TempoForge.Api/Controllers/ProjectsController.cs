@@ -27,54 +27,25 @@ public class ProjectsController : ControllerBase
 	[HttpGet("{id:guid}")]
 	public async Task<ActionResult<ProjectDto>> Get(Guid id, CancellationToken ct)
 	{
-		var p = await _service.GetAsync(id, ct);
-		return p is null ? NotFound() : Ok(ProjectDto.From(p));
+ 	var p = await _service.GetAsync(id, ct);
+ 	if (p is null) throw new KeyNotFoundException("Project not found");
+ 	return Ok(ProjectDto.From(p));
 	}
 
-	[HttpPost]
-	public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectCreateDto dto, CancellationToken ct)
-	{
-		if (!ModelState.IsValid) return ValidationProblem(ModelState);
-		try
-		{
-			var p = await _service.CreateAsync(dto, ct);
-			return CreatedAtAction(nameof(Get), new { id = p.Id }, ProjectDto.From(p));
-		}
-		catch (ArgumentException ex)
-		{
-			return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
-			{
-				[ex.ParamName ?? ""] = new[] { ex.Message }
-			})
-			{
-				Title = "Validation failed",
-				Detail = ex.Message,
-				Status = StatusCodes.Status400BadRequest
-			});
-		}
-	}
+ [HttpPost]
+ public async Task<ActionResult<ProjectDto>> Create([FromBody] ProjectCreateDto dto, CancellationToken ct)
+ {
+ 	if (!ModelState.IsValid) return ValidationProblem(ModelState);
+ 	var p = await _service.CreateAsync(dto, ct);
+ 	return CreatedAtAction(nameof(Get), new { id = p.Id }, ProjectDto.From(p));
+ }
 
 	[HttpPut("{id:guid}")]
 	public async Task<ActionResult<ProjectDto>> Update(Guid id, [FromBody] ProjectUpdateDto dto, CancellationToken ct)
 	{
 		if (!ModelState.IsValid) return ValidationProblem(ModelState);
-		try
-		{
-			var p = await _service.UpdateAsync(id, dto, ct);
-			return p is null ? NotFound() : Ok(ProjectDto.From(p));
-		}
-		catch (ArgumentException ex)
-		{
-			return ValidationProblem(new ValidationProblemDetails(new Dictionary<string, string[]>
-			{
-				[ex.ParamName ?? ""] = new[] { ex.Message }
-			})
-			{
-				Title = "Validation failed",
-				Detail = ex.Message,
-				Status = StatusCodes.Status400BadRequest
-			});
-		}
+ 	var p = await _service.UpdateAsync(id, dto, ct);
+ 	return p is null ? NotFound() : Ok(ProjectDto.From(p));
 	}
 
 	[HttpDelete("{id:guid}")]
