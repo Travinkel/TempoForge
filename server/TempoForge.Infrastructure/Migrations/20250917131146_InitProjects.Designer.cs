@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TempoForge.Infrastructure.Data;
@@ -11,9 +12,11 @@ using TempoForge.Infrastructure.Data;
 namespace TempoForge.Infrastructure.Migrations
 {
     [DbContext(typeof(TempoForgeDbContext))]
-    partial class TempoForgeDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250917131146_InitProjects")]
+    partial class InitProjects
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
