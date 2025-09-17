@@ -2,6 +2,7 @@
 using TempoForge.Application.Projects;
 using TempoForge.Infrastructure.Data;
 using Microsoft.OpenApi.Models;
+using TempoForge.Api.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,6 +12,13 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "TempoForge API", Version = "v1" });
+    var xmlFile = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+    if (File.Exists(xmlPath))
+    {
+        c.IncludeXmlComments(xmlPath);
+        c.SupportNonNullableReferenceTypes();
+    }
 });
 
 var conn = builder.Configuration.GetConnectionString("Default")
@@ -35,6 +43,9 @@ if (app.Environment.IsDevelopment())
     var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
     db.Database.Migrate();
 }
+
+// Global exception handling with ProblemDetails
+app.UseGlobalProblemDetails();
 
 app.UseCors("web");
 
