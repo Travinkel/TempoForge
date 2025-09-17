@@ -5,6 +5,36 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
+## [0.2.0] – 2025-09-17
+
+### Added
+- Repo structure finalized under `/server`, `/client`, `/ops` for full‑stack workflow.
+- Connected API to Neon Postgres (Development connection configured in `appsettings.Development.json`).
+- EF Core aligned to 9.0.1 and Npgsql provider aligned to 9.0.4 across projects.
+- Created and applied initial EF Core migration `InitProjects` to Neon DB.
+- Projects feature end‑to‑end:
+  - Domain entity: `Project` (Id, Name, Track, Pinned, CreatedAt).
+  - Application service: `ProjectService` with CRUD + validation (name 3–80, track required).
+  - API controller: `ProjectsController` with GET/POST/PUT/DELETE.
+  - Swagger/OpenAPI includes Projects endpoints.
+- Frontend scaffolding:
+  - React components `ProjectForm` and `ProjectList` (scaffold) and `/projects` page wiring for list/create.
+- Tests:
+  - xUnit tests for `ProjectService` using Testcontainers PostgreSQL; fallback strategy planned for InMemory provider on constrained machines (Shadow PC).
+
+### Changed
+- Updated package versions to EF Core 9.0.1 and Npgsql 9.0.4 for compatibility with Neon.
+- API configuration updated to read Neon connection from development settings.
+
+### Fixed
+- Test project SDK and references corrected (`TempoForge.Tests.csproj`) to enable running xUnit with (planned) Testcontainers.
+- Verified and fixed React ↔ API CRUD flow against Neon (stability tweaks to DTO validation and controller wiring).
+
+### Removed
+- No removals in this release.
+
+---
+
 ## [0.2.0] – 2025-09-15
 
 ### Added
@@ -48,13 +78,17 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - **Docs**
     - README with setup instructions.
     - Initial UX flow definition (Dashboard, Projects, Focus, History, Progress, Settings, About).
+- **Projects**: entity, service, controller; Neon Postgres connectivity validated end-to-end via Swagger (`POST /api/projects`, `GET /api/projects`).
+    - **EF Core 9.0.9 + Npgsql 9.0.4** alignment across projects; initial migration `InitProjects` applied to Neon.
+    - CI: GitHub Actions workflow to build API, run **Testcontainers** tests, and build client.
 
 ### Changed
 - Moved backend projects into `/server` folder (aligns with Alex’s “server/client” convention).
 - Cleaned `TempoForge.sln` to remove root-level project references.
 - Updated client to use `.env.development` for API base URL.
 - Fixed `vite.config.ts` by adding `@vitejs/plugin-react`.
-
+- Connection strings standardized to key=value for Npgsql (SSL Require + TrustServerCertificate for dev).
+  
 ### Removed
 - Deleted initial `TempoForge/` hello-world console app.
 - Removed root-level `bin/` and `obj` build artifacts.
