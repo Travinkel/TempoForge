@@ -1,52 +1,19 @@
-﻿using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Testcontainers.PostgreSql;
+﻿using System;   // Guid, IAsyncDisposable, etc
+using System.Threading.Tasks;
 using Xunit;
+using Microsoft.EntityFrameworkCore;
 using TempoForge.Infrastructure.Data;
 using TempoForge.Application.Projects;
 using TempoForge.Domain.Entities;
 
 namespace TempoForge.Tests;
 
-public class PostgresFixture : IAsyncLifetime
+public class ProjectServiceTests
 {
-    public PostgreSqlContainer Container { get; private set; } = default!;
-
-    public string ConnectionString => Container.GetConnectionString();
-
-    public async Task InitializeAsync()
-    {
-        Container = new PostgreSqlBuilder()
-            .WithImage("postgres:16-alpine")
-            .WithDatabase("tempo_tests")
-            .WithUsername("postgres")
-            .WithPassword("postgres")
-            .Build();
-        await Container.StartAsync();
-    }
-
-    public async Task DisposeAsync()
-    {
-        if (Container is not null)
-        {
-            await Container.DisposeAsync();
-        }
-    }
-}
-
-public class ProjectServiceTests : IClassFixture<PostgresFixture>
-{
-    private readonly PostgresFixture _fx;
-
-    public ProjectServiceTests(PostgresFixture fx)
-    {
-        _fx = fx;
-    }
-
     private TempoForgeDbContext CreateDbContext()
     {
         var options = new DbContextOptionsBuilder<TempoForgeDbContext>()
-            .UseNpgsql(_fx.ConnectionString)
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         var db = new TempoForgeDbContext(options);
         db.Database.EnsureDeleted();
@@ -92,14 +59,14 @@ public class ProjectServiceTests : IClassFixture<PostgresFixture>
     {
         await using var db = CreateDbContext();
         var svc = new ProjectService(db);
-        await svc.CreateAsync(new ProjectCreateDto { Name = "A", Track = Track.Work, Pinned = false }, default);
+        await svc.CreateAsync(new ProjectCreateDto { Name = "Alpha", Track = Track.Work, Pinned = false }, default);
         await Task.Delay(10);
-        await svc.CreateAsync(new ProjectCreateDto { Name = "B", Track = Track.Work, Pinned = false }, default);
+        await svc.CreateAsync(new ProjectCreateDto { Name = "Beta", Track = Track.Work, Pinned = false }, default);
 
         var all = await svc.GetAllAsync(default);
         Assert.Equal(2, all.Count);
-        Assert.Equal("B", all[0].Name);
-        Assert.Equal("A", all[1].Name);
+        Assert.Equal("Beta", all[0].Name);
+        Assert.Equal("Alpha", all[1].Name);
     }
 
     [Fact]
