@@ -7,10 +7,9 @@ const api = axios.create({
 export interface Project {
   id: string;
   name: string;
-  track: number;
-  pinned: boolean;
   isFavorite: boolean;
   createdAt: string;
+  lastUsedAt: string | null;
 }
 
 export async function getProjects(favorites?: boolean): Promise<Project[]> {
@@ -24,18 +23,13 @@ export async function getFavoriteProjects(): Promise<Project[]> {
   return data;
 }
 
-export async function addProject(
-  name: string,
-  track: number,
-  isFavorite = false,
-  pinned = false,
-) {
-  await api.post("/api/projects", { name, track, pinned, isFavorite });
+export async function addProject(name: string, isFavorite = false) {
+  await api.post("/api/projects", { name, isFavorite });
 }
 
 export async function updateProject(
   id: string,
-  patch: Partial<Pick<Project, "name" | "track" | "pinned" | "isFavorite">>,
+  patch: Partial<Pick<Project, "name" | "isFavorite">>,
 ) {
   await api.put(`/api/projects/${id}`, patch);
 }
