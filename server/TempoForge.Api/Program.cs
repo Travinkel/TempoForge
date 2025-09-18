@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TempoForge.Api.Middleware;
@@ -10,19 +10,13 @@ using TempoForge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Configure Kestrel for Fly.io (port 8080)
-builder.WebHost.ConfigureKestrel(options =>
-{
-    options.ListenAnyIP(8080);
-});
+// Rely on ASPNETCORE_URLS (Dockerfile), don't override Kestrel in code.
 
-// Add services
+// Services
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
-    {
         options.InvalidModelStateResponseFactory = context =>
-            new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));
-    });
+            new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState)));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -42,7 +36,10 @@ var conn = builder.Configuration.GetConnectionString("Default")
            ?? builder.Configuration["ConnectionStrings:Default"]
            ?? "Host=localhost;Database=tempo;Username=tempo;Password=tempo";
 
-builder.Services.AddDbContext<TempoForgeDbContext>(o => o.UseNpgsql(conn));
+builder.Services.AddDbContext<TempoForgeDbContext>(o =>
+{
+    o.UseNpgsql(conn, npgsql => npgsql.EnableRetryOnFailure());
+});
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IQuestService, QuestService>();
 builder.Services.AddScoped<QuestService>();
@@ -56,40 +53,50 @@ builder.Services.AddCors(o => o.AddPolicy("web", p => p
 
 var app = builder.Build();
 
-// Apply migrations at startup (both dev + production)
-using (var scope = app.Services.CreateScope())
+// Apply migrations without blocking startup if DB has hiccups
+app.Lifetime.ApplicationStarted.Register(() =>
 {
-    try
+    _ = Task.Run(async () =>
     {
-        var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
-        await db.Database.MigrateAsync();
-        if (app.Environment.IsDevelopment())
-            await TempoForgeSeeder.SeedAsync(db);
-    }
-    catch (Exception ex)
-    {
-        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "Database migration failed at startup");
-    }
-}
+        using var scope = app.Services.CreateScope();
+        try
+        {
+            var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
+            await db.Database.MigrateAsync();
+            if (app.Environment.IsDevelopment())
+            {
+                await TempoForgeSeeder.SeedAsync(db);
+            }
+        }
+        catch (Exception ex)
+        {
+            var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "Database migration failed at startup");
+            // Do not rethrow; let app start so /health and Swagger work
+        }
+    });
+});
 
-
-// Middleware pipeline
+// Pipeline
 app.UseGlobalProblemDetails();
 app.UseCors("web");
 app.UseSwagger();
 app.UseSwaggerUI();
+
 app.MapControllers();
 
-// Simple health check endpoint
-app.MapGet("/health", () => Results.Ok(new 
+// Health + friendly root
+app.MapGet("/health", () => Results.Ok(new
 {
     status = "ok",
     timeUtc = DateTime.UtcNow
 }));
 
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
 
 // Needed for integration testing
-public partial class Program { }
+public partial class Program
+{
+}
