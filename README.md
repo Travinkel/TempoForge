@@ -2,38 +2,37 @@
 
 ![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=.net&logoColor=white) ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white) ![Fly.io](https://img.shields.io/badge/Deploy-Fly.io-0098FF)
 
-TempoForge is a full-stack focus and sprint tracker that blends productivity coaching with light RPG feedback loops. The primary DaisyUI dashboard delivers a clean, actionable overview for ongoing sprints, while an optional Diablo-style HUD skin provides an immersive alternate layout that draws from the exact same sprint state.
+TempoForge is a full-stack focus and sprint tracker that blends productivity coaching with light RPG feedback loops. The primary DaisyUI dashboard delivers a clean, actionable overview for ongoing sprints, while an optional Diablo-style HUD skin provides an immersive alternate layout that draws from the same sprint state.
 
 ---
 
-## Requirements Coverage
+## Requirements Coverage Checklist
 
-| Requirement (EASV Brief) | Implementation Reference | Status |
-| --- | --- | --- |
-| .NET 8 API with REST controllers, EF Core persistence, Swagger surface, CRUD endpoints | server/TempoForge.Api/*, server/TempoForge.Infrastructure/*, Swagger at /swagger | ✅ |
-| DTO validation returning RFC7807 ProblemDetails | server/TempoForge.Api/Controllers/* + Fluent validation filters | ✅ |
-| Docker deployment for API and client | server/TempoForge.Api/Dockerfile, client/tempoforge-web/Dockerfile | ✅ |
-| xUnit integration tests using TestContainers | server/TempoForge.Tests/* | ✅ |
-| React + Vite + TypeScript frontend with React Router and DaisyUI theme switching | client/tempoforge-web/src/* | ✅ |
-| Shared sprint state across layouts (DaisyUI default, Diablo HUD optional toggle) | client/tempoforge-web/src/context/SprintContext.tsx, src/components/daisyui/Navbar.tsx | ✅ |
+- ✅ CRUD with .NET 8 API controllers (server/TempoForge.Api/Controllers/*)
+- ✅ EF Core with Neon Postgres via Npgsql provider (server/TempoForge.Infrastructure/*)
+- ✅ Swagger/OpenAPI docs exposed at `/swagger` for REST discovery
+- ✅ DaisyUI theming with theme toggle + layout persistence (UserSettingsContext)
+- ✅ Dual layouts: DaisyUI dashboard default, optional Diablo HUD toggle (hidden in production)
+- ✅ Dockerized client and API images ready for registry pushes
+- ✅ TestContainers-powered xUnit integration tests (server/TempoForge.Tests/*)
 
 ---
 
 ## Scope Management
 
-- The DaisyUI dashboard is the default presentation and the official submission artifact.
-- The Diablo HUD is an optional skin accessible via the navbar toggle in production builds.
-- Additional HUD/gamification enhancements will continue on a dedicated post-submission branch to preserve KISS/YAGNI compliance for grading.
+- DaisyUI dashboard is the grading-safe baseline and the default production experience.
+- Diablo HUD remains an opt-in skin accessible only in non-production builds unless explicitly enabled.
+- Further HUD/gamification experiments continue in a separate branch to keep the submission aligned with KISS/YAGNI.
 
 ---
 
 ## Architecture Snapshot
 
-`mermaid
+```mermaid
 flowchart LR
     subgraph Backend
         API[ASP.NET Core API]
-        DB[(PostgreSQL via EF Core)]
+        DB[(Neon Postgres via EF Core)]
     end
     subgraph Frontend
         CTX[Sprint & User Settings Contexts]
@@ -43,95 +42,107 @@ flowchart LR
     API --> CTX
     CTX --> D
     CTX --> H
-`
+```
 
 ---
 
 ## Project Overview
 - Track focus sessions, sprint outcomes, and productivity stats in one place.
 - DaisyUI dashboard ships as the primary UI, optimized for clarity and quick navigation.
-- Diablo HUD skin can be toggled on for an immersive alternative without branching logic.
-- Gamification layers (streaks, quests, ranks) drive habit formation and celebrate progress.
-- Backend and frontend stay decoupled so either side can evolve independently.
+- Diablo HUD skin can be toggled on for an immersive alternative without branching business logic.
+- Gamification layers (streaks, quests, ranks) reinforce daily habit loops and highlight progression.
+- Backend and frontend remain decoupled so either side can evolve independently.
 
 ## Tech Stack
 
 ### Backend
 - .NET 8, ASP.NET Core REST controllers
-- Entity Framework Core with the Npgsql provider for PostgreSQL
-- Swagger/OpenAPI for live API exploration
+- Entity Framework Core with the Npgsql provider for PostgreSQL (Neon)
+- Swagger/OpenAPI for contract exploration
 - xUnit with TestContainers-powered integration suites
 
 ### Frontend
 - React 18 with Vite and TypeScript
-- Tailwind CSS with DaisyUI themes and components
-- Shared contexts (SprintContext, UserSettingsContext) for timer and layout state
+- Tailwind CSS + DaisyUI themes and components
+- Shared contexts (SprintContext, UserSettingsContext) for timer, layout, and theme persistence
 - Lucide Icons for adaptive iconography
 
 ### Deployment & Ops
-- Docker images for API and client bundles
-- Fly.io for managed application hosting
+- Docker images for API (`tempoforge-api`) and client (`tempoforge-web`)
+- Fly.io for hosting orchestrated containers
 - Neon Postgres as the managed database tier
 
-## Getting Started
+## Getting Started (Local)
 
 ### Clone the Repository
-`ash
+```bash
 git clone https://github.com/your-org/tempoforge.git
 cd tempoforge
-`
+```
 
 ### Backend API
-`ash
+```bash
 dotnet restore
 dotnet build TempoForge.sln
 dotnet run --project server/TempoForge.Api/TempoForge.Api.csproj
-`
-API defaults to http://localhost:5000 with Swagger UI at /swagger.
-
-**Docker alternative**
-`ash
-docker build -t tempoforge-api -f server/TempoForge.Api/Dockerfile .
-docker run --rm -p 5000:5000 tempoforge-api
-`
+```
+- API serves `http://localhost:5000`; Swagger UI lives at `http://localhost:5000/swagger`.
 
 ### Frontend Client
-`ash
+```bash
 cd client/tempoforge-web
 npm install
 npm run dev
-`
-The Vite dev server runs on http://localhost:5173 by default.
-
-**Docker alternative**
-`ash
-docker build -t tempoforge-web -f client/tempoforge-web/Dockerfile ./client/tempoforge-web
-docker run --rm -p 4173:4173 tempoforge-web
-`
+```
+- Vite dev server defaults to `http://localhost:5173`.
 
 ### Environment Variables
-- ConnectionStrings__Default — Neon Postgres connection string for the API.
-- VITE_API_BASE_URL — Base URL the client uses to call the API (e.g., http://localhost:5000).
-- Provide overrides via .env, dotnet user-secrets, or your Fly.io secrets store.
+- `ConnectionStrings__Default` — Neon Postgres connection string for the API.
+- `VITE_API_BASE_URL` — Base URL the client uses to call the API (e.g., `http://localhost:5000`).
+- Configure via `.env`, `dotnet user-secrets`, or Fly.io secret stores; never commit credentials.
+
+## Containerized Workflow
+
+### Build & Run with Docker (Local)
+```bash
+# API
+docker build -t tempoforge-api -f server/TempoForge.Api/Dockerfile .
+docker run --rm -p 5000:5000 --env ConnectionStrings__Default="<neon-connection-string>" tempoforge-api
+
+# Client
+docker build -t tempoforge-web -f client/tempoforge-web/Dockerfile ./client/tempoforge-web
+docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tempoforge-web
+```
+
+### Deploying to Fly.io + Neon
+1. Provision Neon database; capture the connection string (with pooling enabled if desired).
+2. Deploy the API container to Fly.io:
+   ```bash
+   fly launch --name tempoforge-api --path server/TempoForge.Api
+   fly secrets set ConnectionStrings__Default="<neon-connection-string>"
+   fly deploy
+   ```
+3. Deploy the client container (static hosting) to Fly.io:
+   ```bash
+   fly launch --name tempoforge-web --path client/tempoforge-web --no-deploy
+   fly secrets set VITE_API_BASE_URL="https://tempoforge-api.fly.dev"
+   fly deploy
+   ```
+4. Verify `https://tempoforge-web.fly.dev` renders the DaisyUI dashboard by default; HUD toggle stays hidden in production per grading guidance.
 
 ## Testing
-- Execute the full backend suite with TestContainers support:
-  `ash
+- Run the full backend suite (unit + integration):
+  ```bash
   dotnet test server/TempoForge.Tests/TempoForge.Tests.csproj
-  `
-- Integration coverage includes starting/completing/aborting sprints and verifying progress and streak projections.
-- Add Vitest/React Testing Library suites as frontend state becomes more complex.
+  ```
+- TestContainers spins up ephemeral Postgres instances to validate sprint flows end-to-end (start -> complete -> stats & streak updates).
+- Add Vitest/React Testing Library as UI complexity grows around stateful components.
 
-## Deployment
-- Build multi-stage Docker images for both API and client.
-- Deploy API and web client to Fly.io with separate apps or machines as required, pointing both to the same Neon Postgres database.
-- DaisyUI dashboard remains the production default; the HUD toggle allows immersive mode without affecting baseline grading scenarios.
+## Screenshots & Demo Media
+- ![TempoForge Dashboard — DaisyUI (default)](docs/media/dashboard-daisyui.png)
+- ![TempoForge Immersive HUD — Experimental](docs/media/dashboard-hud.png)
 
-## Screenshots / Demo
-- ![TempoForge Dashboard - DaisyUI](docs/media/dashboard-daisyui.png)
-- ![TempoForge Immersive HUD](docs/media/dashboard-hud.png)
-
-> Replace the placeholder image paths above with actual captures once available.
+> DaisyUI captures are representative of the grading baseline. HUD screenshot is marked experimental and should only be enabled intentionally.
 
 ## Roadmap & Future Work
 - Extend the HUD with interactive quests, portal animations, and celebratory rank-up effects.
@@ -140,4 +151,8 @@ docker run --rm -p 4173:4173 tempoforge-web
 - Layer in automated frontend testing with Vitest and React Testing Library.
 
 ## Agentic Development Note
-This project makes deliberate use of agentic AI prompts for refactoring, documentation, and code organization in order to accelerate iteration while maintaining reviewer transparency.
+This project uses agentic AI prompts for refactoring, documentation, and code organization to accelerate iteration while maintaining reviewer transparency.
+
+
+
+
