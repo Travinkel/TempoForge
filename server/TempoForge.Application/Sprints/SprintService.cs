@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TempoForge.Domain.Entities;
 using TempoForge.Infrastructure.Data;
@@ -9,6 +9,7 @@ public class SprintService : ISprintService
 {
     private const int DailyGoal = 3;
     private const int WeeklyGoal = 15;
+    private static readonly TimeSpan StreakLookbackWindow = TimeSpan.FromDays(30);
     private readonly TempoForgeDbContext _db;
 
     public SprintService(TempoForgeDbContext db)
@@ -20,9 +21,11 @@ public class SprintService : ISprintService
     {
         if (request.ProjectId == Guid.Empty)
             throw new ArgumentException("ProjectId is required", nameof(request));
+        if (request.DurationMinutes is < 1 or > 180)
+            throw new ArgumentOutOfRangeException(nameof(request.DurationMinutes), "Duration must be between 1 and 180 minutes.");
 
-        var projectExists = await _db.Projects.AnyAsync(p => p.Id == request.ProjectId, ct);
-        if (!projectExists)
+        var project = await _db.Projects.FirstOrDefaultAsync(p => p.Id == request.ProjectId, ct);
+        if (project is null)
             throw new KeyNotFoundException("Project not found");
 
         var active = await _db.Sprints.FirstOrDefaultAsync(s => s.Status == SprintStatus.Running, ct);
@@ -33,6 +36,7 @@ public class SprintService : ISprintService
         {
             Id = Guid.NewGuid(),
             ProjectId = request.ProjectId,
+            Project = project,
             DurationMinutes = request.DurationMinutes,
             StartedAt = DateTime.UtcNow,
             Status = SprintStatus.Running
@@ -40,7 +44,6 @@ public class SprintService : ISprintService
 
         await _db.Sprints.AddAsync(sprint, ct);
         await _db.SaveChangesAsync(ct);
-        await _db.Entry(sprint).Reference(s => s.Project).LoadAsync(ct);
         return sprint;
     }
 
@@ -91,19 +94,27 @@ public class SprintService : ISprintService
             .ToListAsync(ct);
     }
 
+    public async Task<Sprint?> GetAsync(Guid sprintId, CancellationToken ct)
+        => await _db.Sprints
+            .Include(s => s.Project)
+            .FirstOrDefaultAsync(s => s.Id == sprintId, ct);
+
     public async Task<TodayStatsDto> GetTodayStatsAsync(CancellationToken ct)
     {
         var now = DateTime.UtcNow;
         var startOfDay = now.Date;
         var endOfDay = startOfDay.AddDays(1);
 
-        var today = await _db.Sprints
+        var todaysSprints = await _db.Sprints
+            .AsNoTracking()
             .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfDay && s.CompletedAt < endOfDay)
+            .Select(s => new { s.DurationMinutes })
             .ToListAsync(ct);
 
-        var minutes = today.Sum(s => s.DurationMinutes);
-        var count = today.Count;
+        var minutes = todaysSprints.Sum(s => s.DurationMinutes);
+        var count = todaysSprints.Count;
         var streak = await CalculateStreakAsync(startOfDay, ct);
+
         return new TodayStatsDto(count, minutes, streak);
     }
 
@@ -117,11 +128,11 @@ public class SprintService : ISprintService
         var endOfDay = startOfDay.AddDays(1);
         var startOfWeek = startOfDay.AddDays(-6);
 
-        var dailyCompleted = await _db.Sprints.CountAsync(s =>
-            s.Status == SprintStatus.Completed && s.CompletedAt >= startOfDay && s.CompletedAt < endOfDay, ct);
+        var dailyCompleted = await _db.Sprints.CountAsync(
+            s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfDay && s.CompletedAt < endOfDay, ct);
 
-        var weeklyCompleted = await _db.Sprints.CountAsync(s =>
-            s.Status == SprintStatus.Completed && s.CompletedAt >= startOfWeek && s.CompletedAt < endOfDay, ct);
+        var weeklyCompleted = await _db.Sprints.CountAsync(
+            s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfWeek && s.CompletedAt < endOfDay, ct);
 
         return new ProgressDto(standing, totalCompleted, percentToNext, nextThreshold)
         {
@@ -129,14 +140,9 @@ public class SprintService : ISprintService
         };
     }
 
-    public async Task<Sprint?> GetAsync(Guid sprintId, CancellationToken ct)
-        => await _db.Sprints
-            .Include(s => s.Project)
-            .FirstOrDefaultAsync(s => s.Id == sprintId, ct);
-
     private async Task<int> CalculateStreakAsync(DateTime startOfDayUtc, CancellationToken ct)
     {
-        var lookbackStart = startOfDayUtc.AddDays(-30);
+        var lookbackStart = startOfDayUtc.Subtract(StreakLookbackWindow);
         var endExclusive = startOfDayUtc.AddDays(1);
         var completionsByDay = await _db.Sprints
             .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= lookbackStart && s.CompletedAt < endExclusive)
@@ -159,23 +165,25 @@ public class SprintService : ISprintService
 
     private static (string Standing, int? NextThreshold, double PercentToNext) CalculateStanding(int totalCompleted)
     {
-        const int BronzeUpper = 20;
-        const int SilverUpper = 50;
+        const int BronzeTarget = 10;
+        const int SilverTarget = 30;
 
-        if (totalCompleted < BronzeUpper)
+        if (totalCompleted < BronzeTarget)
         {
-            var percent = BronzeUpper == 0 ? 1 : totalCompleted / (double)BronzeUpper;
-            return ("Bronze", BronzeUpper, Math.Clamp(percent, 0, 1));
+            var percent = BronzeTarget == 0 ? 1 : totalCompleted / (double)BronzeTarget;
+            return ("Bronze", BronzeTarget, Math.Clamp(percent, 0, 1));
         }
 
-        if (totalCompleted < SilverUpper)
+        if (totalCompleted < SilverTarget)
         {
-            var progress = totalCompleted - BronzeUpper;
-            var span = SilverUpper - BronzeUpper;
-            var percent = span == 0 ? 1 : progress / (double)span;
-            return ("Silver", SilverUpper, Math.Clamp(percent, 0, 1));
+            var percent = (totalCompleted - BronzeTarget) / (double)(SilverTarget - BronzeTarget);
+            return ("Silver", SilverTarget, Math.Clamp(percent, 0, 1));
         }
 
         return ("Gold", null, 1);
     }
 }
+
+
+
+

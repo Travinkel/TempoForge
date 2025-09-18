@@ -1,9 +1,9 @@
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using TempoForge.Domain.Entities;
 using TempoForge.Tests.Infrastructure;
 using Xunit;
@@ -14,15 +14,21 @@ namespace TempoForge.Tests;
 public class SprintsApiTests
 {
     private readonly ApiTestFixture _fixture;
+    private readonly bool _dockerAvailable;
+    private readonly string _skipReason;
 
     public SprintsApiTests(ApiTestFixture fixture)
     {
         _fixture = fixture;
+        _dockerAvailable = fixture.DockerAvailable;
+        _skipReason = fixture.SkipReason;
     }
 
     [Fact]
     public async Task StartSprint_ReturnsCreated()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Alpha");
@@ -39,6 +45,8 @@ public class SprintsApiTests
     [Fact]
     public async Task StartSprint_WhenRunning_ReturnsConflict()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Conflict Project");
@@ -57,6 +65,8 @@ public class SprintsApiTests
     [Fact]
     public async Task CompleteSprint_UpdatesStatusAndStats()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Completion Project");
@@ -79,6 +89,8 @@ public class SprintsApiTests
     [Fact]
     public async Task AbortSprint_DoesNotAffectStats()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Abort Project");
@@ -99,6 +111,8 @@ public class SprintsApiTests
     [Fact]
     public async Task RecentSprints_ReturnsMostRecentEntries()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var alpha = await CreateProjectAsync(client, "Alpha Project");
@@ -124,6 +138,8 @@ public class SprintsApiTests
     [Fact]
     public async Task Progress_ReturnsSilverStandingWithPercent()
     {
+        if (ShouldSkip()) return;
+
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Progress Project");
@@ -170,6 +186,17 @@ public class SprintsApiTests
     private static Task<HttpResponseMessage> PostWithoutBodyAsync(HttpClient client, string requestUri)
         => client.SendAsync(new HttpRequestMessage(HttpMethod.Post, requestUri));
 
+    private bool ShouldSkip()
+    {
+        if (_dockerAvailable)
+        {
+            return false;
+        }
+
+        Console.WriteLine($"Skipping test because Docker is unavailable: {_skipReason}.");
+        return true;
+    }
+
     private sealed record ProjectResponse(Guid Id, string Name);
 
     private sealed record SprintResponse(Guid Id, Guid ProjectId, string ProjectName, int DurationMinutes, DateTime StartedAtUtc, DateTime? CompletedAtUtc, DateTime? AbortedAtUtc, SprintStatus Status);
@@ -180,3 +207,5 @@ public class SprintsApiTests
 
     private sealed record ProgressResponse(string Standing, int CompletedSprints, double PercentToNext, int? NextThreshold);
 }
+
+

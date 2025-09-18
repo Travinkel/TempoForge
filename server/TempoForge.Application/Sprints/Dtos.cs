@@ -1,13 +1,19 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TempoForge.Domain.Entities;
 
 namespace TempoForge.Application.Sprints;
 
+/// <summary>
+/// Request payload used to start a new sprint for a project.
+/// </summary>
 public record StartSprintRequest(
     [property: Required] Guid ProjectId,
     [property: Range(1, 180)] int DurationMinutes
 );
 
+/// <summary>
+/// Projection describing a sprint and related project metadata.
+/// </summary>
 public record SprintDto(
     Guid Id,
     Guid ProjectId,
@@ -30,6 +36,9 @@ public record SprintDto(
         sprint.Status);
 }
 
+/// <summary>
+/// Summary row for displaying recent sprint activity.
+/// </summary>
 public record RecentSprintDto(
     Guid Id,
     string ProjectName,
@@ -46,11 +55,23 @@ public record RecentSprintDto(
         sprint.Status);
 }
 
+/// <summary>
+/// Daily metrics for sprint activity.
+/// </summary>
 public record TodayStatsDto(int SprintCount, int MinutesFocused, int StreakDays);
 
-public record ProgressDto(string Standing, int CompletedSprints, double PercentToNext, int? NextThreshold)
+/// <summary>
+/// Progress metrics representing the user standing across all completed sprints.
+/// </summary>
+public record ProgressDto(
+    string Standing,
+    int CompletedSprints,
+    double PercentToNext,
+    int? NextThreshold
+)
 {
     public QuestSnapshot Quest { get; init; } = new(0, 0, 0, 0);
 }
 
 public record QuestSnapshot(int DailyGoal, int DailyCompleted, int WeeklyGoal, int WeeklyCompleted);
+

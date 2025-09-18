@@ -1,14 +1,19 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TempoForge.Api.Middleware;
 using TempoForge.Application.Projects;
 using TempoForge.Application.Sprints;
-using TempoForge.Application.Stats;
 using TempoForge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .ConfigureApiBehaviorOptions(options =>
+    {
+        options.InvalidModelStateResponseFactory = context =>
+            new BadRequestObjectResult(new ValidationProblemDetails(context.ModelState));
+    });
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -28,10 +33,8 @@ var conn = builder.Configuration.GetConnectionString("Default")
            ?? "Host=localhost;Database=tempo;Username=tempo;Password=tempo";
 
 builder.Services.AddDbContext<TempoForgeDbContext>(o => o.UseNpgsql(conn));
-
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<ISprintService, SprintService>();
-builder.Services.AddScoped<IStatsService, StatsService>();
 
 builder.Services.AddCors(o => o.AddPolicy("web", p => p
     .WithOrigins(builder.Configuration["ClientOrigin"] ?? "http://localhost:5173")
