@@ -1,7 +1,12 @@
-﻿# build
+# build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ../.. ./
+COPY ./TempoForge.Api ./TempoForge.Api
+COPY ./TempoForge.Application ./TempoForge.Application
+COPY ./TempoForge.Domain ./TempoForge.Domain
+COPY ./TempoForge.Infrastructure ./TempoForge.Infrastructure
+COPY ./TempoForge.Tests ./TempoForge.Tests
+COPY ../TempoForge.sln .
 RUN dotnet restore ./TempoForge.Api/TempoForge.Api.csproj
 RUN dotnet publish ./TempoForge.Api/TempoForge.Api.csproj -c Release -o /app/publish
 
