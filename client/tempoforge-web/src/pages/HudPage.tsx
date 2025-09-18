@@ -9,7 +9,7 @@ import { useSprintContext } from "../context/SprintContext";
 import { useUserSettings } from "../context/UserSettingsContext";
 
 export default function HudPage(): JSX.Element {
-  const showLayoutToggle = import.meta.env.DEV;
+  const allowLayoutToggle = import.meta.env.DEV;
   const {
     portalState,
     active,
@@ -34,7 +34,8 @@ export default function HudPage(): JSX.Element {
     completeSprint,
   } = useSprintContext();
   const { setLayout } = useUserSettings();
-  const showLayoutToggle = typeof setLayout === "function";
+  const showLayoutToggle =
+    allowLayoutToggle && typeof setLayout === "function";
   const handleReturnToDashboard = React.useCallback(() => {
     setLayout("daisyui");
   }, [setLayout]);

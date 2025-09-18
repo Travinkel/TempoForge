@@ -14,7 +14,10 @@ import {
   type Project as ProjectListItem,
 } from "../components/daisyui/ProjectList";
 import { useSprintContext } from "../context/SprintContext";
-import type { Project as ProjectDto } from "../api/projects";
+import type {
+  Project as ProjectDto,
+  ProjectCreateRequest,
+} from "../api/projects";
 import {
   getProjects,
   getFavoriteProjects,
@@ -247,8 +250,8 @@ function DashboardPage(): JSX.Element {
   );
 
   const handleQuickAddProject = React.useCallback(
-    async (name: string, isFavorite: boolean) => {
-      await addProject(name, isFavorite);
+    async ({ name, isFavorite = false }: ProjectCreateRequest) => {
+      await addProject({ name, isFavorite });
       await Promise.all([loadProjects(), loadFavorites()]);
     },
     [loadFavorites, loadProjects],
@@ -271,7 +274,7 @@ function DashboardPage(): JSX.Element {
     async ({ name, isFavorite }: ProjectCreateInput) => {
       setProjectSubmitting(true);
       try {
-        await addProject(name, isFavorite);
+        await addProject({ name, isFavorite });
         await Promise.all([loadProjects(), loadFavorites()]);
       } finally {
         setProjectSubmitting(false);
