@@ -31,6 +31,11 @@ namespace TempoForge.Infrastructure.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamptz");
 
+                    b.Property<bool>("IsFavorite")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(80)
@@ -49,6 +54,58 @@ namespace TempoForge.Infrastructure.Migrations
                     b.HasIndex("Track");
 
                     b.ToTable("Projects");
+                });
+
+            modelBuilder.Entity("TempoForge.Domain.Entities.Sprint", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime?>("AbortedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("timestamptz");
+
+                    b.Property<int>("DurationMinutes")
+                        .HasColumnType("integer");
+
+                    b.Property<Guid>("ProjectId")
+                        .HasColumnType("uuid");
+
+                    b.Property<DateTime>("StartedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamptz")
+                        .HasDefaultValueSql("NOW()");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProjectId");
+
+                    b.HasIndex("Status")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Sprints_Running")
+                        .HasFilter("\"Status\" = 1");
+
+                    b.ToTable("Sprints", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_Sprints_Duration_Minutes", "\"DurationMinutes\" > 0");
+                        });
+                });
+
+            modelBuilder.Entity("TempoForge.Domain.Entities.Sprint", b =>
+                {
+                    b.HasOne("TempoForge.Domain.Entities.Project", "Project")
+                        .WithMany()
+                        .HasForeignKey("ProjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Project");
                 });
 #pragma warning restore 612, 618
         }
