@@ -12,7 +12,7 @@
   api:
     build:
       context: ..
-      dockerfile: TempoForge.Api/Dockerfile
+      dockerfile: server/TempoForge.Api/Dockerfile
     environment:
       ConnectionStrings__Default: Host=db;Database=tempo;Username=tempo;Password=tempo
       ClientOrigin: http://localhost:5173
