@@ -1,8 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using TempoForge.Domain.Entities;
 
 namespace TempoForge.Application.Projects;
 
+/// <summary>
+/// Payload used to create a new project.
+/// </summary>
 public class ProjectCreateDto
 {
     [Required]
@@ -17,6 +20,9 @@ public class ProjectCreateDto
     public bool IsFavorite { get; set; } = false;
 }
 
+/// <summary>
+/// Payload used to update an existing project.
+/// </summary>
 public class ProjectUpdateDto
 {
     [StringLength(80, MinimumLength = 3)]
@@ -28,6 +34,9 @@ public class ProjectUpdateDto
     public bool? IsFavorite { get; set; }
 }
 
+/// <summary>
+/// Projection representing a project with status indicators.
+/// </summary>
 public class ProjectDto
 {
     public Guid Id { get; set; }
