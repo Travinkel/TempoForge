@@ -1,4 +1,4 @@
-using System.Net.Http;
+﻿using System.Net.Http;
 using Microsoft.EntityFrameworkCore;
 using TempoForge.Infrastructure.Data;
 using Testcontainers.PostgreSql;
@@ -42,19 +42,34 @@ public sealed class ApiTestFixture : IAsyncLifetime
         return _factory.CreateClient();
     }
 
-    public async Task ResetDatabaseAsync()
+    public TempoForgeDbContext CreateDbContext()
     {
-        if (!_dockerAvailable || _postgres is null)
+        if (_postgres is null)
         {
-            return;
+            throw new InvalidOperationException("Database container not available");
         }
 
         var options = new DbContextOptionsBuilder<TempoForgeDbContext>()
             .UseNpgsql(_postgres.GetConnectionString())
             .Options;
 
-        await using var context = new TempoForgeDbContext(options);
-        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Sprints\", \"Projects\" RESTART IDENTITY CASCADE;");
+        return new TempoForgeDbContext(options);
+    }
+
+    public async Task ResetDatabaseAsync(bool reseed = false)
+    {
+        if (_postgres is null)
+        {
+            return;
+        }
+
+        await using var context = CreateDbContext();
+        await context.Database.ExecuteSqlRawAsync("TRUNCATE TABLE \"Sprints\", \"Projects\", \"Quests\" RESTART IDENTITY CASCADE;");
+
+        if (reseed)
+        {
+            await TempoForgeSeeder.SeedAsync(context);
+        }
     }
 
     public async Task InitializeAsync()
@@ -64,13 +79,10 @@ public sealed class ApiTestFixture : IAsyncLifetime
             _postgres = _builder.Build();
             await _postgres.StartAsync();
 
-            var options = new DbContextOptionsBuilder<TempoForgeDbContext>()
-                .UseNpgsql(_postgres.GetConnectionString())
-                .Options;
-
-            await using (var context = new TempoForgeDbContext(options))
+            await using (var context = CreateDbContext())
             {
                 await context.Database.MigrateAsync();
+                await TempoForgeSeeder.SeedAsync(context);
             }
 
             _factory = new TempoForgeApiFactory(_postgres.GetConnectionString());
