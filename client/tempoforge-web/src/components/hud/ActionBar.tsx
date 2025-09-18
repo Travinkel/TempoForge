@@ -1,5 +1,5 @@
 import React from 'react'
-import ActionSlot from './ActionSlot'
+import { ActionSlot } from './ActionSlot'
 import MoltenProgressBar from './MoltenProgressBar'
 
 export type ActionBarProps = {
@@ -29,16 +29,11 @@ export default function ActionBar({
   timerLabel,
   className = '',
 }: ActionBarProps) {
-  const slots: Array<{
-    key: string
-    label: string
-    onClick?: () => void
-    disabled: boolean
-    variant?: 'default' | 'active'
-  }> = [
+  const slots = [
     {
       key: 'start',
       label: 'Start',
+      iconClass: 'icon-swords',
       onClick: onStart,
       disabled: !canStart,
       variant: canStart ? 'active' : 'default',
@@ -46,22 +41,28 @@ export default function ActionBar({
     {
       key: 'cancel',
       label: 'Cancel',
+      iconClass: 'icon-skull',
       onClick: onCancel,
       disabled: !canCancel,
+      variant: 'default',
     },
     {
       key: 'complete',
       label: 'Complete',
+      iconClass: 'icon-shield',
       onClick: onComplete,
       disabled: !canComplete,
+      variant: 'default',
     },
     {
       key: 'stats',
       label: 'Stats',
+      iconClass: 'icon-eye',
       onClick: onViewStats,
       disabled: !canViewStats,
+      variant: 'default',
     },
-  ]
+  ] as const
 
   return (
     <div className={`relative w-full max-w-[640px] pointer-events-auto ${className}`}>
@@ -84,12 +85,15 @@ export default function ActionBar({
                 className="h-10 w-[10px] object-contain pointer-events-none select-none"
               />
             )}
-            <ActionSlot
-              label={slot.label}
-              onClick={slot.onClick}
-              disabled={slot.disabled}
-              variant={slot.variant ?? 'default'}
-            />
+            {ActionSlot(
+              slot.iconClass,
+              slot.label,
+              slot.onClick,
+              slot.disabled,
+              {
+                variant: slot.variant,
+              }
+            )}
           </React.Fragment>
         ))}
       </div>

@@ -1,7 +1,7 @@
-﻿import axios from "axios";
+import axios from 'axios';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || "http://localhost:5000",
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000',
 });
 
 export interface Project {
@@ -24,10 +24,17 @@ export async function getFavoriteProjects(): Promise<Project[]> {
   return data;
 }
 
-export async function addProject(name: string, track: number, isFavorite = false) {
-  await api.post("/api/projects", { name, track, pinned: false, isFavorite });
+export async function addProject(name: string, track: number, isFavorite = false, pinned = false) {
+  await api.post('/api/projects', { name, track, pinned, isFavorite });
 }
 
-export async function updateProject(id: string, patch: Partial<Pick<Project, 'name'|'track'|'pinned'|'isFavorite'>>) {
+export async function updateProject(
+  id: string,
+  patch: Partial<Pick<Project, 'name' | 'track' | 'pinned' | 'isFavorite'>>,
+) {
   await api.put(`/api/projects/${id}`, patch);
+}
+
+export async function deleteProject(id: string) {
+  await api.delete(`/api/projects/${id}`);
 }

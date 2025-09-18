@@ -169,3 +169,25 @@ body { font-family: var(--inter); }
   from { background-position-x: 0; }
   to { background-position-x: -8704px; }
 }
+
+.icon {
+  width: 32px;
+  height: 32px;
+  background-image: url('/assets/powers.png');
+  background-size: 128px 160px;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+}
+.icon.icon-swords {
+  background-position: 0 0;
+}
+.icon.icon-skull {
+  background-position: -64px 0;
+}
+.icon.icon-shield {
+  background-position: 0 -32px;
+}
+.icon.icon-eye {
+  background-position: -96px -128px;
+}
+
