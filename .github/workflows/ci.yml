@@ -27,7 +27,13 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      # Docker is preinstalled on ubuntu-latest; Testcontainers will pull images as needed.
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-nuget-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            ${{ runner.os }}-nuget-
 
       - name: Restore
         run: dotnet restore
@@ -38,12 +44,22 @@ jobs:
       - name: Test (with Testcontainers)
         run: dotnet test --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
 
+      - name: Publish API
+        run: dotnet publish server/TempoForge.Api/TempoForge.Api.csproj --configuration Release --no-build --output build/api
+
       - name: Upload test results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: server-test-results
           path: "**/TestResults/*.trx"
+
+      - name: Upload API publish output
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: api-publish
+          path: build/api
 
   client:
     name: Build Client (React + Vite)
@@ -60,7 +76,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: npm
+          cache: 'npm'
           cache-dependency-path: client/tempoforge-web/package-lock.json
 
       - name: Install deps
@@ -80,3 +96,4 @@ jobs:
         with:
           name: web-dist
           path: client/tempoforge-web/dist
+
