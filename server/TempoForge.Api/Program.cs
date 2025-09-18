@@ -1,9 +1,11 @@
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using TempoForge.Api.Middleware;
 using TempoForge.Application.Projects;
+using TempoForge.Application.Quests;
 using TempoForge.Application.Sprints;
+using TempoForge.Application.Stats;
 using TempoForge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -34,7 +36,10 @@ var conn = builder.Configuration.GetConnectionString("Default")
 
 builder.Services.AddDbContext<TempoForgeDbContext>(o => o.UseNpgsql(conn));
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<IQuestService, QuestService>();
+builder.Services.AddScoped<QuestService>();
 builder.Services.AddScoped<ISprintService, SprintService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 
 builder.Services.AddCors(o => o.AddPolicy("web", p => p
     .WithOrigins(builder.Configuration["ClientOrigin"] ?? "http://localhost:5173")
@@ -47,7 +52,8 @@ if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
-    db.Database.Migrate();
+    await db.Database.MigrateAsync();
+    await TempoForgeSeeder.SeedAsync(db);
 }
 
 app.UseGlobalProblemDetails();

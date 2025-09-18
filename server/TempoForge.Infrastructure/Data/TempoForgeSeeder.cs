@@ -70,11 +70,29 @@ public static class TempoForgeSeeder
             },
             new()
             {
+                Id = Guid.Parse("3FC83CC7-AB9C-4B3D-9D78-3DFAA8EFB0E5"),
+                ProjectId = ThesisProjectId,
+                DurationMinutes = 25,
+                StartedAt = ToUtc(todayMorning.AddHours(-5)),
+                CompletedAt = ToUtc(todayMorning.AddHours(-4.5)),
+                Status = SprintStatus.Completed
+            },
+            new()
+            {
                 Id = Guid.Parse("A4EFDA65-6B5E-4A0D-83FE-3B8CB500F31D"),
                 ProjectId = ClientProjectId,
                 DurationMinutes = 30,
                 StartedAt = ToUtc(yesterday.AddHours(4)),
                 CompletedAt = ToUtc(yesterday.AddHours(4.5)),
+                Status = SprintStatus.Completed
+            },
+            new()
+            {
+                Id = Guid.Parse("CF7CD1A2-BA3F-4B3B-8CF0-B6C54D6C9A82"),
+                ProjectId = ClientProjectId,
+                DurationMinutes = 40,
+                StartedAt = ToUtc(yesterday.AddHours(6)),
+                CompletedAt = ToUtc(yesterday.AddHours(6.75)),
                 Status = SprintStatus.Completed
             },
             new()
@@ -156,3 +174,5 @@ public static class TempoForgeSeeder
         return value.Date.AddDays(daysUntilMonday);
     }
 }
+
+
