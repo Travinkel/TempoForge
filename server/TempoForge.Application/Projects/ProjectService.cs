@@ -7,62 +7,89 @@ namespace TempoForge.Application.Projects;
 public class ProjectService : IProjectService
 {
     private readonly TempoForgeDbContext _db;
-    public ProjectService(TempoForgeDbContext db) => _db = db;
+
+    public ProjectService(TempoForgeDbContext db)
+    {
+        _db = db;
+    }
 
     public async Task<Project> CreateAsync(ProjectCreateDto dto, CancellationToken ct)
     {
-        if (dto.Name is null || dto.Name.Trim().Length < 3 || dto.Name.Length > 80)
-            throw new ArgumentOutOfRangeException(nameof(dto.Name), "Name must be 3..80");
-        if (dto.Track is null) throw new ArgumentNullException(nameof(dto.Track));
+        if (dto.Name is null)
+        {
+            throw new ArgumentNullException(nameof(dto.Name));
+        }
 
-        var p = new Project
+        var name = dto.Name.Trim();
+        if (name.Length is < 3 or > 80)
+        {
+            throw new ArgumentOutOfRangeException(nameof(dto.Name), "Name must be between 3 and 80 characters.");
+        }
+
+        var project = new Project
         {
             Id = Guid.NewGuid(),
-            Name = dto.Name.Trim(),
-            Track = dto.Track.Value,
-            Pinned = dto.Pinned,
+            Name = name,
             IsFavorite = dto.IsFavorite,
             CreatedAt = DateTime.UtcNow
         };
-        _db.Projects.Add(p);
+
+        _db.Projects.Add(project);
         await _db.SaveChangesAsync(ct);
-        return p;
+        return project;
     }
 
     public async Task<Project?> GetAsync(Guid id, CancellationToken ct)
         => await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
 
     public async Task<List<Project>> GetAllAsync(CancellationToken ct)
-        => await _db.Projects.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
+        => await _db.Projects
+            .OrderByDescending(x => x.LastUsedAt ?? x.CreatedAt)
+            .ToListAsync(ct);
 
     public async Task<List<Project>> GetFavoritesAsync(CancellationToken ct)
         => await _db.Projects
             .Where(x => x.IsFavorite)
-            .OrderByDescending(x => x.CreatedAt)
+            .OrderByDescending(x => x.LastUsedAt ?? x.CreatedAt)
             .ToListAsync(ct);
 
     public async Task<Project?> UpdateAsync(Guid id, ProjectUpdateDto dto, CancellationToken ct)
     {
-        var p = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (p is null) return null;
+        var project = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (project is null)
+        {
+            return null;
+        }
+
         if (dto.Name is not null)
         {
             var name = dto.Name.Trim();
-            if (name.Length < 3 || name.Length > 80) throw new ArgumentOutOfRangeException(nameof(dto.Name));
-            p.Name = name;
+            if (name.Length is < 3 or > 80)
+            {
+                throw new ArgumentOutOfRangeException(nameof(dto.Name));
+            }
+
+            project.Name = name;
         }
-        if (dto.Track is not null) p.Track = dto.Track.Value;
-        if (dto.Pinned.HasValue) p.Pinned = dto.Pinned.Value;
-        if (dto.IsFavorite.HasValue) p.IsFavorite = dto.IsFavorite.Value;
+
+        if (dto.IsFavorite.HasValue)
+        {
+            project.IsFavorite = dto.IsFavorite.Value;
+        }
+
         await _db.SaveChangesAsync(ct);
-        return p;
+        return project;
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken ct)
     {
-        var p = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
-        if (p is null) return false;
-        _db.Projects.Remove(p);
+        var project = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
+        if (project is null)
+        {
+            return false;
+        }
+
+        _db.Projects.Remove(project);
         await _db.SaveChangesAsync(ct);
         return true;
     }

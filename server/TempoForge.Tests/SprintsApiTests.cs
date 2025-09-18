@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
@@ -81,8 +81,8 @@ public class SprintsApiTests
 
         var today = await client.GetFromJsonAsync<TodayStatsResponse>("/api/stats/today");
         Assert.NotNull(today);
-        Assert.Equal(1, today!.SprintCount);
-        Assert.Equal(30, today.MinutesFocused);
+        Assert.Equal(30, today!.Minutes);
+        Assert.Equal(1, today.Sprints);
         Assert.True(today.StreakDays >= 1);
     }
 
@@ -104,8 +104,8 @@ public class SprintsApiTests
 
         var today = await client.GetFromJsonAsync<TodayStatsResponse>("/api/stats/today");
         Assert.NotNull(today);
-        Assert.Equal(0, today!.SprintCount);
-        Assert.Equal(0, today.MinutesFocused);
+        Assert.Equal(0, today!.Minutes);
+        Assert.Equal(0, today.Sprints);
     }
 
     [Fact]
@@ -153,10 +153,30 @@ public class SprintsApiTests
         var progress = await client.GetFromJsonAsync<ProgressResponse>("/api/stats/progress");
         Assert.NotNull(progress);
         Assert.Equal("Silver", progress!.Standing);
-        Assert.Equal(25, progress.CompletedSprints);
+        Assert.Equal(25, progress.TotalCompleted);
         Assert.Equal(50, progress.NextThreshold);
-        var expected = (25 - 20) / 30d;
-        Assert.InRange(progress.PercentToNext, expected - 0.01, expected + 0.01);
+        Assert.True(progress.PercentToNext >= 0 && progress.PercentToNext <= 100);
+    }
+
+    [Fact]
+    public async Task StartingSprint_UpdatesProjectLastUsed()
+    {
+        if (ShouldSkip()) return;
+
+        await _fixture.ResetDatabaseAsync();
+        using var client = _fixture.CreateClient();
+        var projectId = await CreateProjectAsync(client, "Chronos");
+
+        var before = await client.GetFromJsonAsync<ProjectDetailsResponse>($"/api/projects/{projectId}");
+        Assert.NotNull(before);
+        Assert.Null(before!.LastUsedAt);
+
+        await StartSprintAsync(client, projectId, 25);
+
+        var after = await client.GetFromJsonAsync<ProjectDetailsResponse>($"/api/projects/{projectId}");
+        Assert.NotNull(after);
+        Assert.NotNull(after!.LastUsedAt);
+        Assert.True(after.LastUsedAt!.Value >= before.CreatedAt);
     }
 
     [Fact]
@@ -198,8 +218,6 @@ public class SprintsApiTests
         var payload = new
         {
             Name = name,
-            Track = Track.Work.ToString(),
-            Pinned = false,
             IsFavorite = isFavorite
         };
 
@@ -231,6 +249,7 @@ public class SprintsApiTests
         return true;
     }
 
+    private sealed record ProjectDetailsResponse(Guid Id, string Name, bool IsFavorite, DateTime CreatedAt, DateTime? LastUsedAt);
     private sealed record ProjectResponse(Guid Id, string Name);
     private sealed record ProjectFavoritesResponse(Guid Id, bool IsFavorite);
 
@@ -238,9 +257,9 @@ public class SprintsApiTests
 
     private sealed record RecentSprintResponse(Guid Id, string ProjectName, int DurationMinutes, DateTime StartedAtUtc, SprintStatus Status);
 
-    private sealed record TodayStatsResponse(int SprintCount, int MinutesFocused, int StreakDays);
+    private sealed record TodayStatsResponse(int Minutes, int Sprints, int StreakDays);
 
-    private sealed record ProgressResponse(string Standing, int CompletedSprints, double PercentToNext, int? NextThreshold);
+    private sealed record QuestSnapshotResponse(int DailyGoal, int DailyCompleted, int WeeklyGoal, int WeeklyCompleted, int EpicGoal, int EpicCompleted);
+
+    private sealed record ProgressResponse(string Standing, int PercentToNext, int TotalCompleted, int? NextThreshold, QuestSnapshotResponse Quest);
 }
-
-

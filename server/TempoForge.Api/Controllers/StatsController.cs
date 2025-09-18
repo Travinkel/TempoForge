@@ -1,5 +1,5 @@
-using Microsoft.AspNetCore.Mvc;
-using TempoForge.Application.Sprints;
+﻿using Microsoft.AspNetCore.Mvc;
+using TempoForge.Application.Stats;
 
 namespace TempoForge.Api.Controllers;
 
@@ -10,11 +10,11 @@ namespace TempoForge.Api.Controllers;
 [Route("api/[controller]")]
 public class StatsController : ControllerBase
 {
-    private readonly ISprintService _sprintService;
+    private readonly IStatsService _statsService;
 
-    public StatsController(ISprintService sprintService)
+    public StatsController(IStatsService statsService)
     {
-        _sprintService = sprintService;
+        _statsService = statsService;
     }
 
     /// <summary>
@@ -24,7 +24,7 @@ public class StatsController : ControllerBase
     [ProducesResponseType(typeof(TodayStatsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<TodayStatsDto>> GetToday(CancellationToken ct)
     {
-        var stats = await _sprintService.GetTodayStatsAsync(ct);
+        var stats = await _statsService.GetTodayStatsAsync(ct);
         return Ok(stats);
     }
 
@@ -35,7 +35,7 @@ public class StatsController : ControllerBase
     [ProducesResponseType(typeof(ProgressDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ProgressDto>> GetProgress(CancellationToken ct)
     {
-        var stats = await _sprintService.GetProgressAsync(ct);
+        var stats = await _statsService.GetProgressAsync(ct);
         return Ok(stats);
     }
 }
