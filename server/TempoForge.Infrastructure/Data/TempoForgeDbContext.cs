@@ -39,7 +39,7 @@ public class TempoForgeDbContext : DbContext
         sprint.ToTable("Sprints", t => t.HasCheckConstraint("CK_Sprints_Duration_Minutes", "\"DurationMinutes\" > 0"));
         sprint.HasIndex(x => x.Status)
             .HasDatabaseName("IX_Sprints_Running")
-            .HasFilter("\"Status\" = 1")
+            .HasFilter("\"Status\" = 1") // SprintStatus.Running
             .IsUnique();
 
         var quest = modelBuilder.Entity<Quest>();
