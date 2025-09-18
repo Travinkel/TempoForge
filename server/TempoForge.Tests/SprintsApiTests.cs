@@ -159,14 +159,48 @@ public class SprintsApiTests
         Assert.InRange(progress.PercentToNext, expected - 0.01, expected + 0.01);
     }
 
-    private static async Task<Guid> CreateProjectAsync(HttpClient client, string name)
+    [Fact]
+    public async Task ToggleFavoritesEndpoint_ReflectsUpdatedFlag()
+    {
+        if (ShouldSkip()) return;
+
+        await _fixture.ResetDatabaseAsync();
+        using var client = _fixture.CreateClient();
+
+        var explorerId = await CreateProjectAsync(client, "Explorer", isFavorite: false);
+        var vanguardId = await CreateProjectAsync(client, "Vanguard", isFavorite: true);
+
+        var favorites = await client.GetFromJsonAsync<List<ProjectFavoritesResponse>>("/api/projects/favorites");
+        Assert.NotNull(favorites);
+        Assert.Single(favorites!);
+        Assert.Equal(vanguardId, favorites![0].Id);
+
+        var promoteExplorer = await client.PutAsJsonAsync($"/api/projects/{explorerId}", new { IsFavorite = true });
+        promoteExplorer.EnsureSuccessStatusCode();
+
+        favorites = await client.GetFromJsonAsync<List<ProjectFavoritesResponse>>("/api/projects/favorites");
+        Assert.NotNull(favorites);
+        Assert.Equal(2, favorites!.Count);
+        Assert.Contains(favorites!, f => f.Id == explorerId);
+
+        var demoteExplorer = await client.PutAsJsonAsync($"/api/projects/{explorerId}", new { IsFavorite = false });
+        demoteExplorer.EnsureSuccessStatusCode();
+
+        favorites = await client.GetFromJsonAsync<List<ProjectFavoritesResponse>>("/api/projects/favorites");
+        Assert.NotNull(favorites);
+        Assert.Single(favorites!);
+        Assert.Equal(vanguardId, favorites![0].Id);
+        Assert.True(favorites[0].IsFavorite);
+    }
+
+    private static async Task<Guid> CreateProjectAsync(HttpClient client, string name, bool isFavorite = false)
     {
         var payload = new
         {
             Name = name,
             Track = Track.Work.ToString(),
             Pinned = false,
-            IsFavorite = false
+            IsFavorite = isFavorite
         };
 
         var response = await client.PostAsJsonAsync("/api/projects", payload);
@@ -198,6 +232,7 @@ public class SprintsApiTests
     }
 
     private sealed record ProjectResponse(Guid Id, string Name);
+    private sealed record ProjectFavoritesResponse(Guid Id, bool IsFavorite);
 
     private sealed record SprintResponse(Guid Id, Guid ProjectId, string ProjectName, int DurationMinutes, DateTime StartedAtUtc, DateTime? CompletedAtUtc, DateTime? AbortedAtUtc, SprintStatus Status);
 

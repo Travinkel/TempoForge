@@ -35,6 +35,17 @@ public class ProjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Retrieves only favorite projects.
+    /// </summary>
+    [HttpGet("favorites")]
+    [ProducesResponseType(typeof(IEnumerable<ProjectDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetFavorites(CancellationToken ct)
+    {
+        var favorites = await _service.GetFavoritesAsync(ct);
+        return Ok(favorites.Select(ProjectDto.From));
+    }
+
+    /// <summary>
     /// Retrieves a single project by identifier.
     /// </summary>
     [HttpGet("{id:guid}")]

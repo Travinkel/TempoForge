@@ -35,6 +35,12 @@ public class ProjectService : IProjectService
     public async Task<List<Project>> GetAllAsync(CancellationToken ct)
         => await _db.Projects.OrderByDescending(x => x.CreatedAt).ToListAsync(ct);
 
+    public async Task<List<Project>> GetFavoritesAsync(CancellationToken ct)
+        => await _db.Projects
+            .Where(x => x.IsFavorite)
+            .OrderByDescending(x => x.CreatedAt)
+            .ToListAsync(ct);
+
     public async Task<Project?> UpdateAsync(Guid id, ProjectUpdateDto dto, CancellationToken ct)
     {
         var p = await _db.Projects.FirstOrDefaultAsync(x => x.Id == id, ct);
