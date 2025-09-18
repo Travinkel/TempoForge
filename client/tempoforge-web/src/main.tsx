@@ -15,7 +15,7 @@ console.log("API base:", import.meta.env.VITE_API_BASE_URL);
 function Projects() {
   const [items, setItems] = React.useState<Project[]>([]);
   const [name, setName] = React.useState("");
-  const [track, setTrack] = React.useState<number>(1);
+  const [isFavorite, setIsFavorite] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
 
   const load = React.useCallback(() => {
@@ -35,9 +35,10 @@ function Projects() {
     setError(null);
     try {
       if (!name) return;
-      await addProject(name, track);
+      await addProject(name, isFavorite);
       setItems(await getProjects());
       setName("");
+      setIsFavorite(false);
     } catch (err: any) {
       setError(err?.response?.data?.title ?? "Failed to add project");
     }
@@ -53,14 +54,15 @@ function Projects() {
           value={name}
           onChange={(e) => setName(e.target.value)}
         />
-        <select
-          className="select select-bordered"
-          value={track}
-          onChange={(e) => setTrack(Number(e.target.value))}
-        >
-          <option value={1}>Work</option>
-          <option value={2}>Study</option>
-        </select>
+        <label className="label cursor-pointer gap-2">
+          <span className="label-text">Favorite</span>
+          <input
+            type="checkbox"
+            className="toggle"
+            checked={isFavorite}
+            onChange={(e) => setIsFavorite(e.target.checked)}
+          />
+        </label>
         <button className="btn btn-primary" type="submit">
           Add
         </button>
@@ -68,9 +70,17 @@ function Projects() {
       {error && <div className="alert alert-error mb-4">{error}</div>}
       <ul className="space-y-2">
         {items.map((p) => (
-          <li key={p.id} className="card bg-neutral text-neutral-content p-3">
-            <span className="font-semibold">{p.name}</span>{" "}
-            <span className="badge ml-2">Track {p.track}</span>
+          <li key={p.id} className="card bg-neutral text-neutral-content p-3 space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="font-semibold">{p.name}</span>
+              {p.isFavorite && <span className="badge badge-primary">Favorite</span>}
+            </div>
+            <div className="text-xs opacity-70">
+              Created {new Date(p.createdAt).toLocaleString()}
+            </div>
+            <div className="text-xs opacity-70">
+              Last used {p.lastUsedAt ? new Date(p.lastUsedAt).toLocaleString() : "Not used yet"}
+            </div>
           </li>
         ))}
       </ul>

@@ -15,11 +15,7 @@ type QuickStartCardProps = {
   sprintStarting?: boolean;
   onPlanSprint: (projectId: string | null, durationMinutes: number) => void;
   onStartSprint: (projectId: string, durationMinutes: number) => Promise<void>;
-  onAddProject: (
-    name: string,
-    track: number,
-    isFavorite: boolean,
-  ) => Promise<void>;
+  onAddProject: (name: string, isFavorite: boolean) => Promise<void>;
   onToggleFavorite: (projectId: string, nextValue: boolean) => Promise<void>;
 };
 
@@ -105,10 +101,8 @@ export default function QuickStartCard({
     if (!name) {
       return;
     }
-    const trackValue = window.prompt("Track (1 = Work, 2 = Study)", "1") ?? "1";
-    const track = Number.parseInt(trackValue, 10) === 2 ? 2 : 1;
     const favorite = window.confirm("Mark as favorite?");
-    await onAddProject(name, track, favorite);
+    await onAddProject(name, favorite);
   }, [onAddProject]);
 
   const handleToggleFavorite = React.useCallback(
@@ -245,33 +239,39 @@ export default function QuickStartCard({
                 </div>
               ) : (
                 <ul className="divide-y divide-base-100/25">
-                  {projects.map((project) => (
-                    <li
-                      key={project.id}
-                      className="flex items-center justify-between py-2"
-                    >
-                      <button
-                        type="button"
-                        className={`text-left ${selectedProjectId === project.id ? "font-semibold text-yellow-200" : ""}`}
-                        onClick={() => handleSelectProject(project.id)}
+                  {projects.map((project) => {
+                    const lastUsed = project.lastUsedAt
+                      ? new Date(project.lastUsedAt).toLocaleString()
+                      : "Not used yet";
+                    return (
+                      <li
+                        key={project.id}
+                        className="flex items-center justify-between py-2"
                       >
-                        {project.name}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleToggleFavorite(project)}
-                        aria-label="Toggle favorite"
-                      >
-                        <Droplet
-                          className={
-                            project.isFavorite
-                              ? "text-red-600"
-                              : "text-gray-500 hover:text-red-500"
-                          }
-                        />
-                      </button>
-                    </li>
-                  ))}
+                        <button
+                          type="button"
+                          className={`text-left ${selectedProjectId === project.id ? "font-semibold text-yellow-200" : ""}`}
+                          onClick={() => handleSelectProject(project.id)}
+                        >
+                          <div>{project.name}</div>
+                          <div className="text-xs opacity-60">Last used {lastUsed}</div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleToggleFavorite(project)}
+                          aria-label="Toggle favorite"
+                        >
+                          <Droplet
+                            className={
+                              project.isFavorite
+                                ? "text-red-600"
+                                : "text-gray-500 hover:text-red-500"
+                            }
+                          />
+                        </button>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
             </div>

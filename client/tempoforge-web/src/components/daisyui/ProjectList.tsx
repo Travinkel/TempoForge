@@ -3,19 +3,35 @@ import React from "react";
 export type Project = {
   id: string;
   name: string;
-  track: "Work" | "Study";
-  pinned: boolean;
+  isFavorite: boolean;
   createdAt: string;
+  lastUsedAt: string | null;
+};
+
+const formatTimestamp = (
+  value: string | null | undefined,
+  emptyFallback: string,
+): string => {
+  if (!value) {
+    return emptyFallback;
+  }
+
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return "Unknown";
+  }
+
+  return parsed.toLocaleString();
 };
 
 export function ProjectList({
   items,
   onDelete,
-  onTogglePin,
+  onToggleFavorite,
 }: {
   items: Project[];
   onDelete?: (id: string) => void;
-  onTogglePin?: (id: string, pinned: boolean) => void;
+  onToggleFavorite?: (id: string, nextValue: boolean) => void;
 }) {
   if (!items?.length) {
     return <div className="alert shadow"><span>No projects yet.</span></div>;
@@ -28,13 +44,17 @@ export function ProjectList({
             <div className="flex items-center justify-between">
               <h3 className="card-title">
                 {p.name}
-                <span className="badge badge-outline ml-2">{p.track}</span>
-                {p.pinned && <span className="badge badge-primary ml-2">Pinned</span>}
+                {p.isFavorite && (
+                  <span className="badge badge-primary ml-2">Favorite</span>
+                )}
               </h3>
               <div className="flex gap-2">
-                {onTogglePin && (
-                  <button className="btn btn-xs" onClick={() => onTogglePin(p.id, !p.pinned)}>
-                    {p.pinned ? "Unpin" : "Pin"}
+                {onToggleFavorite && (
+                  <button
+                    className="btn btn-xs"
+                    onClick={() => onToggleFavorite(p.id, !p.isFavorite)}
+                  >
+                    {p.isFavorite ? "Unfavorite" : "Favorite"}
                   </button>
                 )}
                 {onDelete && (
@@ -42,7 +62,12 @@ export function ProjectList({
                 )}
               </div>
             </div>
-            <p className="text-sm opacity-70">Created {new Date(p.createdAt).toLocaleString()}</p>
+            <p className="text-sm opacity-70">
+              Created {formatTimestamp(p.createdAt, "Unknown")}
+            </p>
+            <p className="text-sm opacity-70">
+              Last used {formatTimestamp(p.lastUsedAt, "Not used yet")}
+            </p>
           </div>
         </li>
       ))}

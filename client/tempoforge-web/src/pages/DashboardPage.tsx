@@ -60,15 +60,12 @@ const formatRecentTimestamp = (iso: string): string => {
   });
 };
 
-const mapTrackLabel = (track: number): ProjectListItem["track"] =>
-  track === 2 ? "Study" : "Work";
-
 const toProjectListItem = (project: ProjectDto): ProjectListItem => ({
   id: project.id,
   name: project.name,
-  track: mapTrackLabel(project.track),
-  pinned: project.pinned,
   createdAt: project.createdAt,
+  isFavorite: project.isFavorite,
+  lastUsedAt: project.lastUsedAt,
 });
 
 type QuestCardProps = {
@@ -250,8 +247,8 @@ function DashboardPage(): JSX.Element {
   );
 
   const handleQuickAddProject = React.useCallback(
-    async (name: string, track: number, isFavorite: boolean) => {
-      await addProject(name, track, isFavorite);
+    async (name: string, isFavorite: boolean) => {
+      await addProject(name, isFavorite);
       await Promise.all([loadProjects(), loadFavorites()]);
     },
     [loadFavorites, loadProjects],
@@ -271,17 +268,10 @@ function DashboardPage(): JSX.Element {
   );
 
   const handleProjectFormSubmit = React.useCallback(
-    async ({ name, track, pinned }: ProjectCreateInput) => {
+    async ({ name, isFavorite }: ProjectCreateInput) => {
       setProjectSubmitting(true);
       try {
-        await addProject(name, track === "Study" ? 2 : 1, false);
-        if (pinned) {
-          const refreshed = await getProjects();
-          const created = refreshed.find((p) => p.name === name);
-          if (created) {
-            await updateProject(created.id, { pinned: true });
-          }
-        }
+        await addProject(name, isFavorite);
         await Promise.all([loadProjects(), loadFavorites()]);
       } finally {
         setProjectSubmitting(false);
@@ -304,19 +294,6 @@ function DashboardPage(): JSX.Element {
       }
     },
     [loadFavorites, loadProjects],
-  );
-
-  const handleTogglePin = React.useCallback(
-    async (projectId: string, pinned: boolean) => {
-      setProjectActionPending(true);
-      try {
-        await updateProject(projectId, { pinned });
-        await loadProjects();
-      } finally {
-        setProjectActionPending(false);
-      }
-    },
-    [loadProjects],
   );
 
   const timerSubtitle = active
@@ -474,7 +451,7 @@ function DashboardPage(): JSX.Element {
                 <ProjectList
                   items={projectListItems}
                   onDelete={handleDeleteProject}
-                  onTogglePin={handleTogglePin}
+                  onToggleFavorite={handleToggleFavorite}
                 />
               )}
             </div>

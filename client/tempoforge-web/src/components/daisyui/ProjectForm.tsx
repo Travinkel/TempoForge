@@ -1,11 +1,8 @@
 import React from "react";
 
-export type Track = "Work" | "Study";
-
 export type ProjectCreateInput = {
   name: string;
-  track: Track;
-  pinned: boolean;
+  isFavorite: boolean;
 };
 
 export function ProjectForm({
@@ -18,14 +15,15 @@ export function ProjectForm({
   submitting?: boolean;
 }) {
   const [name, setName] = React.useState(initial?.name ?? "");
-  const [track, setTrack] = React.useState<Track>(initial?.track ?? "Work");
-  const [pinned, setPinned] = React.useState<boolean>(initial?.pinned ?? false);
+  const [isFavorite, setIsFavorite] = React.useState<boolean>(
+    initial?.isFavorite ?? false,
+  );
   const [errors, setErrors] = React.useState<Record<string, string[]>>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrors({});
-    await Promise.resolve(onSubmit({ name, track, pinned })).catch((err: any) => {
+    await Promise.resolve(onSubmit({ name, isFavorite })).catch((err: any) => {
       if (err?.status === 400 && err?.problemDetails) {
         setErrors(err.problemDetails.errors ?? {});
       } else {
@@ -50,18 +48,14 @@ export function ProjectForm({
       </div>
 
       <div className="form-control">
-        <label className="label"><span className="label-text">Track</span></label>
-        <select className="select select-bordered" value={track} onChange={e => setTrack(e.target.value as Track)}>
-          <option value="Work">Work</option>
-          <option value="Study">Study</option>
-        </select>
-        {errors["Track"] && <span className="text-error text-sm mt-1">{errors["Track"][0]}</span>}
-      </div>
-
-      <div className="form-control">
         <label className="cursor-pointer label justify-start gap-3">
-          <input type="checkbox" className="toggle" checked={pinned} onChange={e => setPinned(e.target.checked)} />
-          <span className="label-text">Pinned</span>
+          <input
+            type="checkbox"
+            className="toggle"
+            checked={isFavorite}
+            onChange={(e) => setIsFavorite(e.target.checked)}
+          />
+          <span className="label-text">Favorite</span>
         </label>
       </div>
 

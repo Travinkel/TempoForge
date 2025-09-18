@@ -33,6 +33,7 @@ export default function HudPage(): JSX.Element {
     completeSprint,
   } = useSprintContext();
   const { setLayout } = useUserSettings();
+  const showLayoutToggle = typeof setLayout === "function";
   const handleReturnToDashboard = React.useCallback(() => {
     setLayout("daisyui");
   }, [setLayout]);
