@@ -14,6 +14,7 @@ public class ProjectCreateDto
     public Track? Track { get; set; }
 
     public bool Pinned { get; set; } = false;
+    public bool IsFavorite { get; set; } = false;
 }
 
 public class ProjectUpdateDto
@@ -24,6 +25,7 @@ public class ProjectUpdateDto
     public Track? Track { get; set; }
 
     public bool? Pinned { get; set; }
+    public bool? IsFavorite { get; set; }
 }
 
 public class ProjectDto
@@ -32,6 +34,7 @@ public class ProjectDto
     public string Name { get; set; } = string.Empty;
     public Track Track { get; set; }
     public bool Pinned { get; set; }
+    public bool IsFavorite { get; set; }
     public DateTime CreatedAt { get; set; }
 
     public static ProjectDto From(Project p) => new()
@@ -40,6 +43,7 @@ public class ProjectDto
         Name = p.Name,
         Track = p.Track,
         Pinned = p.Pinned,
+        IsFavorite = p.IsFavorite,
         CreatedAt = p.CreatedAt
     };
 }
