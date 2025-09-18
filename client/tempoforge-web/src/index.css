@@ -110,3 +110,62 @@ body { font-family: var(--inter); }
   pointer-events: none;
 }
 
+
+/* Knight portal avatar */
+.knight-stage {
+  position: relative;
+  width: 128px;
+  height: 160px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  pointer-events: none;
+}
+.knight-stage::after {
+  content: "";
+  position: absolute;
+  bottom: 6px;
+  width: 110px;
+  height: 18px;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(12,12,12,0.65) 0%, rgba(12,12,12,0) 70%);
+  filter: blur(2px);
+  opacity: 0.9;
+  z-index: 0;
+}
+.knight-motion--enter {
+  animation: knight-enter 1.2s ease forwards;
+}
+.knight-motion--exit {
+  animation: knight-exit 1.2s ease forwards;
+}
+@keyframes knight-enter {
+  0% { transform: translateY(24px); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: translateY(-28px); opacity: 1; }
+}
+@keyframes knight-exit {
+  0% { transform: translateY(-28px); opacity: 1; }
+  100% { transform: translateY(24px); opacity: 0; }
+}
+.knight-sprite {
+  position: relative;
+  width: 128px;
+  height: 128px;
+  background-image: url('/assets/knight.png');
+  background-repeat: no-repeat;
+  background-size: 8704px 128px;
+  image-rendering: pixelated;
+  filter: drop-shadow(0 0 16px rgba(0,0,0,0.75));
+  z-index: 1;
+}
+.knight-sprite--walk {
+  animation: knight-walk 1.6s steps(68) infinite;
+}
+.knight-sprite--flip {
+  transform: scaleX(-1);
+}
+@keyframes knight-walk {
+  from { background-position-x: 0; }
+  to { background-position-x: -8704px; }
+}
