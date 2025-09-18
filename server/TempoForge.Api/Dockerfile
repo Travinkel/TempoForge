@@ -1,16 +1,20 @@
 # build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
-COPY ./TempoForge.Api ./TempoForge.Api
-COPY ./TempoForge.Application ./TempoForge.Application
-COPY ./TempoForge.Domain ./TempoForge.Domain
-COPY ./TempoForge.Infrastructure ./TempoForge.Infrastructure
-COPY ./TempoForge.Tests ./TempoForge.Tests
-COPY ../TempoForge.sln .
+
+# Copy all the project files
+COPY server/TempoForge.Api ./TempoForge.Api
+COPY server/TempoForge.Application ./TempoForge.Application
+COPY server/TempoForge.Domain ./TempoForge.Domain
+COPY server/TempoForge.Infrastructure ./TempoForge.Infrastructure
+COPY server/TempoForge.Tests ./TempoForge.Tests
+COPY TempoForge.sln ./
+
+# Restore & publish API project
 RUN dotnet restore ./TempoForge.Api/TempoForge.Api.csproj
 RUN dotnet publish ./TempoForge.Api/TempoForge.Api.csproj -c Release -o /app/publish
 
-# runtime
+# Runtime image
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
