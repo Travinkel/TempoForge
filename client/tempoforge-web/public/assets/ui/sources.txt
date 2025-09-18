@@ -1,0 +1,16 @@
+Author: p0ss
+Link: https://opengameart.org/content/rusted-metal-texture-pack
+License: CC-BY 3.0
+
+Author: REALLUSION
+Link: https://www.reallusion.com/character-creator/free-3d-character-base.html
+EULA: https://www.reallusion.com/Content/EULA/AP/EULA_AP.htm
+(5. Character Creator Base Model License)
+
+Author: mrtextures.blogspot.com?
+Link: https://mrtextures.blogspot.com/2014/06/concrete-wall-smooth-dirt-pillar.html
+Use: "Textures are free to use, both commercial and non-commercial."
+
+Author: itsmars
+Link: https://opengameart.org/content/health-orb-11
+License: CC0
