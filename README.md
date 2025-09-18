@@ -1,4 +1,4 @@
-﻿# TempoForge
+# TempoForge
 
 ![.NET 8](https://img.shields.io/badge/.NET-8.0-512BD4?logo=.net&logoColor=white) ![React](https://img.shields.io/badge/React-18-61DAFB?logo=react&logoColor=white) ![Fly.io](https://img.shields.io/badge/Deploy-Fly.io-0098FF)
 
@@ -6,15 +6,14 @@ TempoForge is a full-stack focus and sprint tracker that blends productivity coa
 
 ---
 
-## Requirements Coverage Checklist
+## Feature Checklist
 
-- ✅ CRUD with .NET 8 API controllers (server/TempoForge.Api/Controllers/*)
-- ✅ EF Core with Neon Postgres via Npgsql provider (server/TempoForge.Infrastructure/*)
-- ✅ Swagger/OpenAPI docs exposed at `/swagger` for REST discovery
-- ✅ DaisyUI theming with theme toggle + layout persistence (UserSettingsContext)
-- ✅ Dual layouts: DaisyUI dashboard default, optional Diablo HUD toggle (hidden in production)
-- ✅ Dockerized client and API images ready for registry pushes
-- ✅ TestContainers-powered xUnit integration tests (server/TempoForge.Tests/*)
+- [x] RESTful sprint lifecycle covering start, abort, complete, and recent history (`/api/sprints/*`)
+- [x] Live stats endpoints for today + long-term progression (`/api/stats/today`, `/api/stats/progress`)
+- [x] QuestService pipeline with active quest API (`/api/quests/active`, `/api/quests/{id}/claim`)
+- [x] Favorites and recent cards backed by real data (`/api/projects/favorites`, `/api/sprints/recent`)
+- [x] DaisyUI dashboard as the default UX; HUD toggle gated to non-production builds
+- [x] TestContainers-backed integration tests plus QuestService unit coverage
 
 ---
 
@@ -97,8 +96,8 @@ npm run dev
 - Vite dev server defaults to `http://localhost:5173`.
 
 ### Environment Variables
-- `ConnectionStrings__Default` — Neon Postgres connection string for the API.
-- `VITE_API_BASE_URL` — Base URL the client uses to call the API (e.g., `http://localhost:5000`).
+- `ConnectionStrings__Default` � Neon Postgres connection string for the API.
+- `VITE_API_BASE_URL` � Base URL the client uses to call the API (e.g., `http://localhost:5000`).
 - Configure via `.env`, `dotnet user-secrets`, or Fly.io secret stores; never commit credentials.
 
 ## Containerized Workflow
@@ -135,14 +134,18 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
   ```bash
   dotnet test server/TempoForge.Tests/TempoForge.Tests.csproj
   ```
-- TestContainers spins up ephemeral Postgres instances to validate sprint flows end-to-end (start -> complete -> stats & streak updates).
-- Add Vitest/React Testing Library as UI complexity grows around stateful components.
+  Includes TestContainers coverage for sprint lifecycle + favorites, and QuestService in-memory unit tests.
+- Verify the frontend build (type-check + production bundle):
+  ```bash
+  cd client/tempoforge-web
+  npm run build
+  ```
 
 ## Screenshots & Demo Media
-- ![TempoForge Dashboard — DaisyUI (default)](docs/media/dashboard-daisyui.png)
-- ![TempoForge Immersive HUD — Experimental](docs/media/dashboard-hud.png)
+- ![TempoForge Dashboard � DaisyUI (default)](docs/screenshots/dashboard.png)
+- ![TempoForge Immersive HUD � Experimental](docs/screenshots/hud.png)
 
-> DaisyUI captures are representative of the grading baseline. HUD screenshot is marked experimental and should only be enabled intentionally.
+> Placeholder captures ship in `docs/screenshots/`. Replace them with live captures before public release.
 
 ## Roadmap & Future Work
 - Extend the HUD with interactive quests, portal animations, and celebratory rank-up effects.
@@ -152,6 +155,11 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
 
 ## Agentic Development Note
 This project uses agentic AI prompts for refactoring, documentation, and code organization to accelerate iteration while maintaining reviewer transparency.
+
+
+
+
+
 
 
 

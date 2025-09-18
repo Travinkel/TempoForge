@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.0.0] – 2025-09-18
+
+### Added
+- API: `/api/stats/*` endpoints now backed by `StatsService` with quest-aware summaries.
+- API: `/api/quests/active` and `/api/quests/{id}/claim` wired to the new `QuestService` and quest domain entity.
+- Infrastructure: `Quest` table migration plus seeding script supplying demo data for stats, favorites, and quests.
+- Frontend: DaisyUI cards call live stats, progress, favorites, recent, and quests APIs; QuickStart uses SprintContext POST wiring.
+- Frontend: Quest panels (DaisyUI & HUD) animate completions with checkmarks, strikethrough transitions, and placeholder media captures.
+- Tests: QuestService unit coverage, refreshed TestContainers scenarios for sprint lifecycle + favorites, quest integration assertions.
+- Docs: README feature checklist, Fly.io deployment guide, run scripts, and screenshot placeholders; changelog updated for MVP milestone.
+
+### Changed
+- Sprint completion now advances daily/weekly/epic quests via `QuestService` and excludes aborted runs from streak/minute stats.
+- Dashboard grid unified (QuickStart, Stats, Progress, Favorites, Recent) with skeleton loaders; HUD stats panel shows lifetime totals.
+
+### Removed
+- Legacy quest CRUD references replaced with consolidated active/claim pipeline.
+
+---
+
 ## [0.2.1] – 2025-09-18
 
 ### Added
@@ -104,4 +124,6 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - Removed root-level `bin/` and `obj` build artifacts.
 
 ---
+
+
 
