@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] ñ 2025-09-18
+## [1.0.0] ‚Äì 2025-09-18
 
 ### Added
 - API: `/api/stats/*` endpoints now backed by `StatsService` with quest-aware summaries.
@@ -15,12 +15,18 @@
 - Sprint completion now advances daily/weekly/epic quests via `QuestService` and excludes aborted runs from streak/minute stats.
 - Dashboard grid unified (QuickStart, Stats, Progress, Favorites, Recent) with skeleton loaders; HUD stats panel shows lifetime totals.
 
+### Fixed
+- Database uniqueness filter now targets running sprints (`Status = 1`), preventing false conflicts when scheduling sessions.
+- HUD toggle guard stops null reference crashes when switching between dashboard and immersive modes.
+- Project UI and DTO contract stay in sync by using only `name`, `isFavorite`, `createdAt`, and `lastUsedAt` fields.
+- Docker Compose builds the API from `server/TempoForge.Api/Dockerfile`, aligning local stacks with the production image.
+
 ### Removed
 - Legacy quest CRUD references replaced with consolidated active/claim pipeline.
 
 ---
 
-## [0.2.1] ñ 2025-09-18
+## [0.2.1] ‚Äì 2025-09-18
 
 ### Added
 - docs: Reworked docs/PROJECTDESCRIPTION.md into a structured internal project brief covering scope, timeline, and workflow.
@@ -35,7 +41,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.2.0] ñ 2025-09-17
+## [0.2.0] ‚Äì 2025-09-17
 
 ### Added
 - Repo structure finalized under `/server`, `/client`, `/ops` for full-stack workflow.
@@ -44,7 +50,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - Created and applied initial EF Core migration `InitProjects` to Neon DB.
 - Projects feature end-to-end:
   - Domain entity: `Project` (Id, Name, Track, Pinned, CreatedAt).
-  - Application service: `ProjectService` with CRUD + validation (name 3ñ80, track required).
+  - Application service: `ProjectService` with CRUD + validation (name 3‚Äì80, track required).
   - API controller: `ProjectsController` with GET/POST/PUT/DELETE.
   - Swagger/OpenAPI includes Projects endpoints.
 - Frontend scaffolding:
@@ -65,12 +71,12 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.2.0] ñ 2025-09-15
+## [0.2.0] ‚Äì 2025-09-15
 
 ### Added
 - **API**
   - ProjectsController with CRUD endpoints: GET/POST/PUT/DELETE /api/projects.
-  - DTO validation (name 3ñ80 chars, track required). Returns ProblemDetails on invalid input.
+  - DTO validation (name 3‚Äì80 chars, track required). Returns ProblemDetails on invalid input.
   - Swagger docs updated to include Projects endpoints.
 - **Domain/Infrastructure**
   - Project entity (Id, Name, Track, Pinned, CreatedAt).
@@ -89,7 +95,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.1.0] ñ 2025-09-15
+## [0.1.0] ‚Äì 2025-09-15
 
 ### Added
 - **Architecture**
@@ -113,7 +119,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
     - CI: GitHub Actions workflow to build API, run **Testcontainers** tests, and build client.
 
 ### Changed
-- Moved backend projects into `/server` folder (aligns with Alexís ìserver/clientî convention).
+- Moved backend projects into `/server` folder (aligns with Alex‚Äôs ‚Äúserver/client‚Äù convention).
 - Cleaned `TempoForge.sln` to remove root-level project references.
 - Updated client to use `.env.development` for API base URL.
 - Fixed `vite.config.ts` by adding `@vitejs/plugin-react`.
