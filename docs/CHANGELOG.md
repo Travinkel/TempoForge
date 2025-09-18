@@ -1,6 +1,17 @@
-# Changelog
+﻿# Changelog
 
-## [1.0.0] – 2025-09-18
+## 1.0.1– 2025-09-19
+### Fixed
+- Fly.io startup reliability: app binds on 0.0.0.0:8080; migrations no longer block startup; fast HTTP health checks on /health.
+- CI stability: Testcontainers run without parallelization; standard .NET build/test workflow.
+
+### Added
+- Health endpoint (/health) and root redirect ("/" → "/swagger") for quick verification and UX.
+
+### Changed
+- Dockerfile relies on ASPNETCORE_URLS and EXPOSE 8080; removed redundant Kestrel overrides.
+- Fly configuration simplified; removed TCP checks that caused long probe timeouts.
+## [1.0.0] â€“ 2025-09-18
 
 ### Added
 - API: `/api/stats/*` endpoints now backed by `StatsService` with quest-aware summaries.
@@ -26,7 +37,7 @@
 
 ---
 
-## [0.2.1] – 2025-09-18
+## [0.2.1] â€“ 2025-09-18
 
 ### Added
 - docs: Reworked docs/PROJECTDESCRIPTION.md into a structured internal project brief covering scope, timeline, and workflow.
@@ -41,7 +52,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.2.0] – 2025-09-17
+## [0.2.0] â€“ 2025-09-17
 
 ### Added
 - Repo structure finalized under `/server`, `/client`, `/ops` for full-stack workflow.
@@ -50,7 +61,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - Created and applied initial EF Core migration `InitProjects` to Neon DB.
 - Projects feature end-to-end:
   - Domain entity: `Project` (Id, Name, Track, Pinned, CreatedAt).
-  - Application service: `ProjectService` with CRUD + validation (name 3–80, track required).
+  - Application service: `ProjectService` with CRUD + validation (name 3â€“80, track required).
   - API controller: `ProjectsController` with GET/POST/PUT/DELETE.
   - Swagger/OpenAPI includes Projects endpoints.
 - Frontend scaffolding:
@@ -71,12 +82,12 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.2.0] – 2025-09-15
+## [0.2.0] â€“ 2025-09-15
 
 ### Added
 - **API**
   - ProjectsController with CRUD endpoints: GET/POST/PUT/DELETE /api/projects.
-  - DTO validation (name 3–80 chars, track required). Returns ProblemDetails on invalid input.
+  - DTO validation (name 3â€“80 chars, track required). Returns ProblemDetails on invalid input.
   - Swagger docs updated to include Projects endpoints.
 - **Domain/Infrastructure**
   - Project entity (Id, Name, Track, Pinned, CreatedAt).
@@ -95,7 +106,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 ---
 
-## [0.1.0] – 2025-09-15
+## [0.1.0] â€“ 2025-09-15
 
 ### Added
 - **Architecture**
@@ -119,7 +130,7 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
     - CI: GitHub Actions workflow to build API, run **Testcontainers** tests, and build client.
 
 ### Changed
-- Moved backend projects into `/server` folder (aligns with Alex’s “server/client” convention).
+- Moved backend projects into `/server` folder (aligns with Alexâ€™s â€œserver/clientâ€ convention).
 - Cleaned `TempoForge.sln` to remove root-level project references.
 - Updated client to use `.env.development` for API base URL.
 - Fixed `vite.config.ts` by adding `@vitejs/plugin-react`.
@@ -130,6 +141,8 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - Removed root-level `bin/` and `obj` build artifacts.
 
 ---
+
+
 
 
 
