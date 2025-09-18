@@ -18,6 +18,7 @@ public class TempoForgeDbContext : DbContext
         p.Property(x => x.Name).IsRequired().HasMaxLength(80);
         p.Property(x => x.Track).HasConversion<int>();
         p.Property(x => x.Pinned).HasDefaultValue(false);
+        p.Property(x => x.IsFavorite).HasDefaultValue(false);
         p.Property(x => x.CreatedAt).HasColumnType("timestamptz");
         p.HasIndex(x => x.Track);
         base.OnModelCreating(modelBuilder);
