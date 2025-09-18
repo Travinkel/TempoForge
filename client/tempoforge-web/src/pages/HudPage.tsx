@@ -34,7 +34,7 @@ export default function HudPage(): JSX.Element {
     completeSprint,
   } = useSprintContext();
   const { setLayout } = useUserSettings();
-  const showLayoutToggle = typeof setLayout === "function";
+  const canShowLayoutToggle = showLayoutToggle && typeof setLayout === "function";
   const handleReturnToDashboard = React.useCallback(() => {
     setLayout("daisyui");
   }, [setLayout]);
@@ -60,7 +60,7 @@ export default function HudPage(): JSX.Element {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <main className="flex-1">
-          {showLayoutToggle && (
+          {canShowLayoutToggle && (
             <div className="flex justify-end px-6 pt-6">
               <button
                 type="button"
