@@ -1,4 +1,4 @@
-﻿import axios from 'axios'
+import axios from 'axios'
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
 const http = axios.create({ baseURL: API_BASE })
@@ -33,6 +33,8 @@ export type QuestSnapshot = {
   dailyCompleted: number
   weeklyGoal: number
   weeklyCompleted: number
+  epicGoal: number
+  epicCompleted: number
 }
 
 export type ProgressStats = {
@@ -43,14 +45,56 @@ export type ProgressStats = {
   quest: QuestSnapshot
 }
 
+type TodayStatsResponse = {
+  minutes: number
+  sprints: number
+  streakDays: number
+}
+
+type ProgressResponse = {
+  standing: string
+  percentToNext: number
+  totalCompleted: number
+  nextThreshold: number | null
+  quest: {
+    dailyGoal: number
+    dailyCompleted: number
+    weeklyGoal: number
+    weeklyCompleted: number
+    epicGoal: number
+    epicCompleted: number
+  }
+}
+
+const toTodayStats = (data: TodayStatsResponse): TodayStats => ({
+  minutesFocused: data.minutes,
+  sprintCount: data.sprints,
+  streakDays: data.streakDays,
+})
+
+const toProgressStats = (data: ProgressResponse): ProgressStats => ({
+  standing: data.standing,
+  completedSprints: data.totalCompleted,
+  percentToNext: Math.min(Math.max(data.percentToNext / 100, 0), 1),
+  nextThreshold: data.nextThreshold,
+  quest: {
+    dailyGoal: data.quest.dailyGoal,
+    dailyCompleted: data.quest.dailyCompleted,
+    weeklyGoal: data.quest.weeklyGoal,
+    weeklyCompleted: data.quest.weeklyCompleted,
+    epicGoal: data.quest.epicGoal,
+    epicCompleted: data.quest.epicCompleted,
+  },
+})
+
 export async function getTodayStats(): Promise<TodayStats> {
-  const { data } = await http.get<TodayStats>('/api/stats/today')
-  return data
+  const { data } = await http.get<TodayStatsResponse>('/api/stats/today')
+  return toTodayStats(data)
 }
 
 export async function getProgressStats(): Promise<ProgressStats> {
-  const { data } = await http.get<ProgressStats>('/api/stats/progress')
-  return data
+  const { data } = await http.get<ProgressResponse>('/api/stats/progress')
+  return toProgressStats(data)
 }
 
 export async function getRecentSprints(take = 5): Promise<RecentSprint[]> {
@@ -87,4 +131,3 @@ export async function getRunningSprint(): Promise<SprintDto | null> {
     throw error
   }
 }
-
