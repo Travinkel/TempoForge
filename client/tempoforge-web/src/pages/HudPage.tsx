@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import AvatarSprite from "../components/hud/AvatarSprite";
 import LifeOrb from "../components/hud/LifeOrb";
 import ManaOrb from "../components/hud/ManaOrb";
@@ -61,7 +61,7 @@ export default function HudPage(): JSX.Element {
 
       <div className="relative z-10 flex min-h-screen flex-col">
         <main className="flex-1">
-          {canShowLayoutToggle && (
+          {showLayoutToggle && (
             <div className="flex justify-end px-6 pt-6">
               <button
                 type="button"
