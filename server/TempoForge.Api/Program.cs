@@ -7,8 +7,18 @@ using TempoForge.Application.Quests;
 using TempoForge.Application.Sprints;
 using TempoForge.Application.Stats;
 using TempoForge.Infrastructure.Data;
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
+    db.Database.Migrate();
+}
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(8080); // Fly.io expects port 8080
+});
 
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
@@ -47,6 +57,8 @@ builder.Services.AddCors(o => o.AddPolicy("web", p => p
     .AllowAnyMethod()));
 
 var app = builder.Build();
+
+
 
 if (app.Environment.IsDevelopment())
 {
