@@ -12,5 +12,6 @@ public class Project
     public string Name { get; set; } = string.Empty;
     public Track Track { get; set; }
     public bool Pinned { get; set; }
+    public bool IsFavorite { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 }
