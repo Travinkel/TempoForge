@@ -21,6 +21,7 @@ public class ProjectService : IProjectService
             Name = dto.Name.Trim(),
             Track = dto.Track.Value,
             Pinned = dto.Pinned,
+            IsFavorite = dto.IsFavorite,
             CreatedAt = DateTime.UtcNow
         };
         _db.Projects.Add(p);
@@ -46,6 +47,7 @@ public class ProjectService : IProjectService
         }
         if (dto.Track is not null) p.Track = dto.Track.Value;
         if (dto.Pinned.HasValue) p.Pinned = dto.Pinned.Value;
+        if (dto.IsFavorite.HasValue) p.IsFavorite = dto.IsFavorite.Value;
         await _db.SaveChangesAsync(ct);
         return p;
     }
