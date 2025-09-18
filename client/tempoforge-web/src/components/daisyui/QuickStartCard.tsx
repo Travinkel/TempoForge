@@ -9,6 +9,7 @@ type QuickStartCardProps = {
   favorites: Project[];
   loading?: boolean;
   error?: string | null;
+  onErrorMessage?: (message: string | null) => void;
   plannedProjectId: string | null;
   plannedDurationMinutes: number;
   sprintStarting?: boolean;
@@ -29,6 +30,7 @@ export default function QuickStartCard({
   favorites,
   loading = false,
   error,
+  onErrorMessage,
   plannedProjectId,
   plannedDurationMinutes,
   sprintStarting = false,
@@ -66,8 +68,9 @@ export default function QuickStartCard({
       const minutes =
         typeof duration === "number" ? duration : plannedDurationMinutes;
       announcePlan(projectId, minutes);
+      onErrorMessage?.(null);
     },
-    [announcePlan, duration, plannedDurationMinutes],
+    [announcePlan, duration, onErrorMessage, plannedDurationMinutes],
   );
 
   const handleDurationChange = React.useCallback(
@@ -92,8 +95,9 @@ export default function QuickStartCard({
       }
       setDuration(option);
       announcePlan(selectedProjectId, option);
+      onErrorMessage?.(null);
     },
-    [announcePlan, plannedDurationMinutes, selectedProjectId],
+    [announcePlan, onErrorMessage, plannedDurationMinutes, selectedProjectId],
   );
 
   const handleAddProject = React.useCallback(async () => {
@@ -116,22 +120,22 @@ export default function QuickStartCard({
 
   const handleStart = React.useCallback(async () => {
     if (!selectedProjectId) {
-      onError?.("Select a project before starting a sprint.");
+      onErrorMessage?.("Select a project before starting a sprint.");
       return;
     }
     const minutes = typeof duration === "number" ? duration : plannedDurationMinutes;
     setPending(true);
-    onError?.(null);
+    onErrorMessage?.(null);
     try {
       await onStartSprint(selectedProjectId, minutes);
-      onError?.(null);
+      onErrorMessage?.(null);
     } catch (error) {
       console.error("Failed to start sprint", error);
-      onError?.("Failed to start sprint. Please try again.");
+      onErrorMessage?.("Failed to start sprint. Please try again.");
     } finally {
       setPending(false);
     }
-  }, [duration, onError, onStartSprint, plannedDurationMinutes, selectedProjectId]);
+  }, [duration, onErrorMessage, onStartSprint, plannedDurationMinutes, selectedProjectId]);
 
   const allProjectsEmpty = !loading && projects.length === 0;
   const effectiveDuration =
@@ -277,3 +281,12 @@ export default function QuickStartCard({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+

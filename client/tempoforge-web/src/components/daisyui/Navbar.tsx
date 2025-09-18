@@ -1,15 +1,10 @@
-import { Link } from 'react-router-dom'
+﻿import { Link } from "react-router-dom";
+import ThemeToggle from "./ThemeToggle";
+import { useUserSettings } from "../../context/UserSettingsContext";
 
-export type LayoutToggleVariant = 'daisyui' | 'hud'
-
-type NavbarProps = {
-  layout?: LayoutToggleVariant
-  onToggleLayout?: () => void
-}
-
-export default function Navbar({ layout, onToggleLayout }: NavbarProps) {
-  const toggleLabel = layout === 'hud' ? 'Switch to DaisyUI' : 'Switch to HUD'
-  const showToggle = !import.meta.env.PROD && Boolean(layout && onToggleLayout)
+export default function Navbar(): JSX.Element {
+  const { layout, toggleLayout } = useUserSettings();
+  const toggleLabel = layout === "hud" ? "Switch to Dashboard" : "Switch to HUD";
 
   return (
     <header className="navbar bg-neutral text-neutral-content shadow-lg">
@@ -21,13 +16,13 @@ export default function Navbar({ layout, onToggleLayout }: NavbarProps) {
               alt="TempoForge Logo"
               className="h-10 w-auto transition-all duration-200 filter drop-shadow-[0_0_4px_rgba(255,215,0,0.35)] hover:scale-105 hover:drop-shadow-[0_0_6px_rgba(255,215,0,0.55)]"
             />
+            <span className="hidden font-semibold uppercase tracking-[0.3em] sm:block">TempoForge</span>
           </Link>
-          <nav className="flex items-center gap-2">
-            {showToggle && (
-              <button type="button" className="btn btn-primary btn-sm" onClick={onToggleLayout}>
-                {toggleLabel}
-              </button>
-            )}
+          <nav className="flex flex-wrap items-center gap-3">
+            <ThemeToggle />
+            <button type="button" className="btn btn-primary btn-sm" onClick={toggleLayout}>
+              {toggleLabel}
+            </button>
             <Link to="/settings" className="btn btn-ghost btn-sm">
               Settings
             </Link>
@@ -38,5 +33,5 @@ export default function Navbar({ layout, onToggleLayout }: NavbarProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }
