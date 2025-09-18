@@ -160,14 +160,24 @@ function DashboardPage(): JSX.Element {
     );
   }, [projects, favorites, plannedProjectId]);
 
-  const statsCardItems = React.useMemo(
-    () => [
-      { label: "Minutes today", value: `${todayStats?.minutesFocused ?? 0}` },
-      { label: "Sprints today", value: `${todayStats?.sprintCount ?? 0}` },
-      { label: "Standing", value: progressStats?.standing ?? "N/A" },
-    ],
-    [todayStats, progressStats],
+  const statsCardData = React.useMemo(
+    () => ({
+      minutes: todayStats?.minutesFocused ?? null,
+      sprints: todayStats?.sprintCount ?? null,
+      streakDays: todayStats?.streakDays ?? null,
+    }),
+    [todayStats],
   );
+
+  const summaryStreakText = statsSummary.streakDays === null || statsSummary.streakDays === undefined
+    ? '--'
+    : `${summaryStreakText} day${statsSummary.streakDays === 1 ? '' : 's'}`;
+  const summaryMinutesText = statsSummary.todayMinutes === null || statsSummary.todayMinutes === undefined
+    ? '--'
+    : `${summaryMinutesText} m`;
+  const summarySprintsText = statsSummary.todaySprints === null || statsSummary.todaySprints === undefined
+    ? '--'
+    : `${summarySprintsText}`;
 
   const recentItems = React.useMemo(() => {
     return recentSprints.map((item) => ({
@@ -341,7 +351,12 @@ function DashboardPage(): JSX.Element {
             onAddProject={handleQuickAddProject}
             onToggleFavorite={handleToggleFavorite}
           />
-          <StatsCard items={statsCardItems} loading={metricsLoading} />
+          <StatsCard
+            minutes={statsCardData.minutes}
+            sprints={statsCardData.sprints}
+            streakDays={statsCardData.streakDays}
+            loading={metricsLoading}
+          />
           <ProgressCard progress={progressStats} loading={metricsLoading} />
           <FavoritesCard
             items={favorites.map((f) => f.name)}
@@ -396,19 +411,19 @@ function DashboardPage(): JSX.Element {
                 <div className="rounded bg-base-100/10 px-2 py-3">
                   <div className="text-xs opacity-70">Streak</div>
                   <div className="text-lg font-bold">
-                    {statsSummary.streakDays}
+                    {summaryStreakText}
                   </div>
                 </div>
                 <div className="rounded bg-base-100/10 px-2 py-3">
                   <div className="text-xs opacity-70">Minutes</div>
                   <div className="text-lg font-bold">
-                    {statsSummary.todayMinutes}
+                    {summaryMinutesText}
                   </div>
                 </div>
                 <div className="rounded bg-base-100/10 px-2 py-3">
                   <div className="text-xs opacity-70">Sprints</div>
                   <div className="text-lg font-bold">
-                    {statsSummary.totalSprints}
+                    {summarySprintsText}
                   </div>
                 </div>
               </div>

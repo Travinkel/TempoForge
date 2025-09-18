@@ -1,16 +1,26 @@
 import React from 'react'
 
-type StatItem = {
-  label: string
-  value: string
-}
-
 type StatsCardProps = {
-  items: StatItem[]
+  minutes?: number | null
+  sprints?: number | null
+  streakDays?: number | null
   loading?: boolean
 }
 
-export default function StatsCard({ items, loading = false }: StatsCardProps) {
+const formatValue = (value?: number | null, formatter?: (value: number) => string) => {
+  if (value === null || value === undefined) {
+    return '--'
+  }
+  return formatter ? formatter(value) : `${value}`
+}
+
+export default function StatsCard({ minutes, sprints, streakDays, loading = false }: StatsCardProps) {
+  const items = [
+    { label: 'Minutes today', value: formatValue(minutes, val => `${val}m`) },
+    { label: 'Sprints today', value: formatValue(sprints) },
+    { label: 'Streak', value: formatValue(streakDays, val => `${val} day${val === 1 ? '' : 's'}`) },
+  ]
+
   return (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
       {loading

@@ -116,21 +116,22 @@ export default function QuickStartCard({
 
   const handleStart = React.useCallback(async () => {
     if (!selectedProjectId) {
-      window.alert("Select a project before starting a sprint.");
+      onError?.("Select a project before starting a sprint.");
       return;
     }
-    const minutes =
-      typeof duration === "number" ? duration : plannedDurationMinutes;
+    const minutes = typeof duration === "number" ? duration : plannedDurationMinutes;
     setPending(true);
+    onError?.(null);
     try {
       await onStartSprint(selectedProjectId, minutes);
+      onError?.(null);
     } catch (error) {
       console.error("Failed to start sprint", error);
-      window.alert("Failed to start sprint. Please try again.");
+      onError?.("Failed to start sprint. Please try again.");
     } finally {
       setPending(false);
     }
-  }, [duration, onStartSprint, plannedDurationMinutes, selectedProjectId]);
+  }, [duration, onError, onStartSprint, plannedDurationMinutes, selectedProjectId]);
 
   const allProjectsEmpty = !loading && projects.length === 0;
   const effectiveDuration =
@@ -147,8 +148,8 @@ export default function QuickStartCard({
         </div>
 
         {error && (
-          <div className="rounded bg-base-100/10 px-3 py-2 text-sm text-error-content">
-            {error}
+          <div className="alert alert-error text-sm">
+            <span>{error}</span>
           </div>
         )}
 

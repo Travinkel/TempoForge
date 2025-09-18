@@ -5,8 +5,8 @@ import ManaOrb from "../components/hud/ManaOrb";
 import QuestPanel from "../components/hud/QuestPanel";
 import StatsPanel from "../components/hud/StatsPanel";
 import ActionBar from "../components/hud/ActionBar";
-import { useSprintContext } from '../context/SprintContext';
-import { useUserSettings } from '../context/UserSettingsContext';
+import { useSprintContext } from "../context/SprintContext";
+import { useUserSettings } from "../context/UserSettingsContext";
 
 export default function HudPage(): JSX.Element {
   const {
@@ -33,7 +33,7 @@ export default function HudPage(): JSX.Element {
   const { setLayout } = useUserSettings();
   const showLayoutToggle = !import.meta.env.PROD;
   const handleReturnToDashboard = React.useCallback(() => {
-    setLayout('daisyui');
+    setLayout("daisyui");
   }, [setLayout]);
   const actionBarProgress = active ? completedRatio : percentToNext;
   const actionBarLabel = active
@@ -177,8 +177,3 @@ export default function HudPage(): JSX.Element {
     </div>
   );
 }
-
-
-
-
-
