@@ -1,14 +1,8 @@
-# fly.toml app configuration file generated for tempoforge-api on 2025-09-18T23:51:52+02:00
-#
-# See https://fly.io/docs/reference/configuration/ for information about how to use this file.
-#
-
 app = 'tempoforge-api'
 primary_region = 'cdg'
 
 [build]
   dockerfile = "server/TempoForge.Api/Dockerfile"
-
 
 [http_service]
   internal_port = 8080
@@ -16,15 +10,16 @@ primary_region = 'cdg'
   auto_stop_machines = 'stop'
   auto_start_machines = true
   min_machines_running = 0
-  processes = ['app']
+  processes = "app"
 
-    [[http_service.checks]]
-     grace_period = "10s"
-     interval = "5s"
-     timeout = "2s"
-     method = "GET"
-     path = "/health"
-     
+  [[http_service.checks]]
+    type = 'http'
+    grace_period = '10s'
+    interval = '5s'
+    timeout = '2s'
+    method = 'GET'
+    path = '/health'
+
 [[vm]]
   memory = '1gb'
   cpu_kind = 'shared'
