@@ -9,6 +9,7 @@ import { useSprintContext } from "../context/SprintContext";
 import { useUserSettings } from "../context/UserSettingsContext";
 
 export default function HudPage(): JSX.Element {
+  const showLayoutToggle = import.meta.env.DEV;
   const {
     portalState,
     active,
