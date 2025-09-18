@@ -55,23 +55,3 @@ public record RecentSprintDto(
         sprint.Status);
 }
 
-/// <summary>
-/// Daily metrics for sprint activity.
-/// </summary>
-public record TodayStatsDto(int SprintCount, int MinutesFocused, int StreakDays);
-
-/// <summary>
-/// Progress metrics representing the user standing across all completed sprints.
-/// </summary>
-public record ProgressDto(
-    string Standing,
-    int CompletedSprints,
-    double PercentToNext,
-    int? NextThreshold
-)
-{
-    public QuestSnapshot Quest { get; init; } = new(0, 0, 0, 0);
-}
-
-public record QuestSnapshot(int DailyGoal, int DailyCompleted, int WeeklyGoal, int WeeklyCompleted);
-

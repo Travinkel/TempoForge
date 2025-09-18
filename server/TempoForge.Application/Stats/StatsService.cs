@@ -7,7 +7,7 @@ namespace TempoForge.Application.Stats;
 
 public class StatsService : IStatsService
 {
-    private const int DefaultDailyGoal = 1;
+    private const int DefaultDailyGoal = 3;
     private const int DefaultWeeklyGoal = 15;
     private const int DefaultEpicGoal = 100;
     private const int BronzeTarget = 20;
