@@ -9,14 +9,25 @@ export interface Project {
   name: string;
   track: number;
   pinned: boolean;
+  isFavorite: boolean;
   createdAt: string;
 }
 
-export async function getProjects(): Promise<Project[]> {
-  const { data } = await api.get<Project[]>("/api/projects");
+export async function getProjects(favorites?: boolean): Promise<Project[]> {
+  const query = favorites ? '?favorites=true' : '';
+  const { data } = await api.get<Project[]>(`/api/projects${query}`);
   return data;
 }
 
-export async function addProject(name: string, track: number) {
-  await api.post("/api/projects", { name, track, pinned: false });
+export async function getFavoriteProjects(): Promise<Project[]> {
+  const { data } = await api.get<Project[]>(`/api/projects/favorites`);
+  return data;
+}
+
+export async function addProject(name: string, track: number, isFavorite = false) {
+  await api.post("/api/projects", { name, track, pinned: false, isFavorite });
+}
+
+export async function updateProject(id: string, patch: Partial<Pick<Project, 'name'|'track'|'pinned'|'isFavorite'>>) {
+  await api.put(`/api/projects/${id}`, patch);
 }
