@@ -6,11 +6,46 @@ namespace TempoForge.Application.Quests;
 
 public class QuestService : IQuestService
 {
+    private const int DailyGoalTarget = 3;
+    private const int WeeklyGoalTarget = 15;
+    private const int EpicGoalTarget = 100;
+    private const int StreakGoalTarget = 5;
+    private const int StreakLookbackDays = 30;
+
     private readonly TempoForgeDbContext _db;
 
     public QuestService(TempoForgeDbContext db)
     {
         _db = db;
+    }
+
+    public async Task<List<QuestDto>> GetActiveAsync(CancellationToken ct = default)
+    {
+        var now = DateTime.UtcNow;
+        var startOfDay = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
+        var startOfWeek = GetStartOfWeek(startOfDay);
+        var endOfDay = startOfDay.AddDays(1);
+
+        var todayCount = await _db.Sprints
+            .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfDay && s.CompletedAt < endOfDay)
+            .CountAsync(ct);
+
+        var weekCount = await _db.Sprints
+            .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfWeek)
+            .CountAsync(ct);
+
+        var totalCount = await _db.Sprints
+            .CountAsync(s => s.Status == SprintStatus.Completed, ct);
+
+        var streak = await CalculateStreakAsync(startOfDay, ct);
+
+        return new List<QuestDto>
+        {
+            new("Complete 3 sprints today", "Daily", DailyGoalTarget, todayCount, todayCount >= DailyGoalTarget),
+            new("Maintain streak >= 5 days", "Weekly", StreakGoalTarget, streak, streak >= StreakGoalTarget),
+            new("Complete 15 sprints this week", "Weekly", WeeklyGoalTarget, weekCount, weekCount >= WeeklyGoalTarget),
+            new("Epic: 100 total sprints", "Epic", EpicGoalTarget, totalCount, totalCount >= EpicGoalTarget)
+        };
     }
 
     public async Task<ActiveQuestsDto> GetActiveQuestsAsync(CancellationToken ct)
@@ -66,7 +101,7 @@ public class QuestService : IQuestService
         }
     }
 
-    public async Task<QuestDto?> ClaimRewardAsync(Guid questId, CancellationToken ct)
+    public async Task<QuestDetailDto?> ClaimRewardAsync(Guid questId, CancellationToken ct)
     {
         var quest = await _db.Quests.FirstOrDefaultAsync(q => q.Id == questId, ct);
         if (quest is null)
@@ -94,6 +129,36 @@ public class QuestService : IQuestService
         quest.RewardClaimed = true;
         await _db.SaveChangesAsync(ct);
         return Map(quest);
+    }
+
+    private async Task<int> CalculateStreakAsync(DateTime startOfDayUtc, CancellationToken ct)
+    {
+        var lookbackStart = startOfDayUtc.AddDays(-StreakLookbackDays);
+        var endExclusive = startOfDayUtc.AddDays(1);
+
+        var completionsByDay = await _db.Sprints
+            .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= lookbackStart && s.CompletedAt < endExclusive)
+            .GroupBy(s => s.CompletedAt!.Value.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        var lookup = completionsByDay.ToDictionary(x => x.Date, x => x.Count);
+
+        var cursor = startOfDayUtc.Date;
+        var streak = 0;
+        while (lookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= DailyGoalTarget)
+        {
+            streak++;
+            cursor = cursor.AddDays(-1);
+        }
+
+        return streak;
+    }
+
+    private static DateTime GetStartOfWeek(DateTime startOfDayUtc)
+    {
+        var daysSinceMonday = ((int)startOfDayUtc.DayOfWeek + 6) % 7;
+        return startOfDayUtc.AddDays(-daysSinceMonday);
     }
 
     private static bool EnsureCurrent(Quest quest, DateTime now)
@@ -144,10 +209,10 @@ public class QuestService : IQuestService
         return DateTime.SpecifyKind(nextMonday, DateTimeKind.Utc);
     }
 
-    private static QuestDto? Map(Quest? quest)
+    private static QuestDetailDto? Map(Quest? quest)
         => quest is null
             ? null
-            : new QuestDto(
+            : new QuestDetailDto(
                 quest.Id,
                 quest.Name,
                 quest.Type,
