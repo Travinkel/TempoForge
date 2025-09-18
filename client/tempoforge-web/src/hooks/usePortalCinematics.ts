@@ -1,6 +1,6 @@
 import React from 'react'
 
-export type PortalPhase = 'idle' | 'enteringPortal' | 'adventuring' | 'exitingPortal'
+export type PortalCinematicState = 'idle' | 'enteringPortal' | 'adventuring' | 'exitingPortal'
 
 type Options = {
   entryDuration?: number
@@ -9,13 +9,13 @@ type Options = {
 
 /**
  * Controls a simple three-beat portal cinematic (enter ? adventure ? exit).
- * Call `beginEntry` when the avatar steps into the portal and `beginExit` when
- * the sprint concludes or is cancelled.
+ * Call `enterPortal` when the avatar steps into the portal and `exitPortal`
+ * when the sprint concludes or is cancelled.
  */
 export function usePortalCinematics(options: Options = {}) {
   const entryDuration = options.entryDuration ?? 1200
   const exitDuration = options.exitDuration ?? 1200
-  const [phase, setPhase] = React.useState<PortalPhase>('idle')
+  const [state, setState] = React.useState<PortalCinematicState>('idle')
   const timers = React.useRef<number[]>([])
 
   const clearTimers = React.useCallback(() => {
@@ -23,33 +23,33 @@ export function usePortalCinematics(options: Options = {}) {
     timers.current = []
   }, [])
 
-  const beginEntry = React.useCallback(() => {
+  const enterPortal = React.useCallback(() => {
     clearTimers()
-    setPhase('enteringPortal')
+    setState('enteringPortal')
     timers.current.push(
-      window.setTimeout(() => setPhase('adventuring'), entryDuration)
+      window.setTimeout(() => setState('adventuring'), entryDuration)
     )
   }, [clearTimers, entryDuration])
 
-  const beginExit = React.useCallback(() => {
+  const exitPortal = React.useCallback(() => {
     clearTimers()
-    setPhase('exitingPortal')
+    setState('exitingPortal')
     timers.current.push(
-      window.setTimeout(() => setPhase('idle'), exitDuration)
+      window.setTimeout(() => setState('idle'), exitDuration)
     )
   }, [clearTimers, exitDuration])
 
   const reset = React.useCallback(() => {
     clearTimers()
-    setPhase('idle')
+    setState('idle')
   }, [clearTimers])
 
   React.useEffect(() => () => reset(), [reset])
 
   const isInPortal =
-    phase === 'enteringPortal' ||
-    phase === 'adventuring' ||
-    phase === 'exitingPortal'
+    state === 'enteringPortal' ||
+    state === 'adventuring' ||
+    state === 'exitingPortal'
 
-  return { phase, beginEntry, beginExit, reset, isInPortal }
+  return { state, enterPortal, exitPortal, reset, isInPortal }
 }
