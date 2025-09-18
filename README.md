@@ -96,8 +96,8 @@ npm run dev
 - Vite dev server defaults to `http://localhost:5173`.
 
 ### Environment Variables
-- `ConnectionStrings__Default` — Neon Postgres connection string for the API.
-- `VITE_API_BASE_URL` — Base URL the client uses to call the API (e.g., `http://localhost:5000`).
+- `ConnectionStrings__Default` â€” Neon Postgres connection string for the API.
+- `VITE_API_BASE_URL` â€” Base URL the client uses to call the API (e.g., `http://localhost:5000`).
 - Configure via `.env`, `dotnet user-secrets`, or Fly.io secret stores; never commit credentials.
 
 ## Containerized Workflow
@@ -135,6 +135,7 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
   dotnet test server/TempoForge.Tests/TempoForge.Tests.csproj
   ```
   Includes TestContainers coverage for sprint lifecycle + favorites, and QuestService in-memory unit tests.
+  The integration harness's [`ApiTestFixture`](server/TempoForge.Tests/Infrastructure/ApiTestFixture.cs) truncates the `Projects`, `Sprints`, and `Quests` tables before each run via `ResetDatabaseAsync`, which keeps the filtered unique index on running sprints (`Status = 1`) from colliding with stale rows. When adding new integration specs, call `ResetDatabaseAsync(reseed: true)` to repopulate the baseline data; the index is configured in [`TempoForgeDbContext`](server/TempoForge.Infrastructure/Data/TempoForgeDbContext.cs).
 - Verify the frontend build (type-check + production bundle):
   ```bash
   cd client/tempoforge-web
@@ -142,8 +143,8 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
   ```
 
 ## Screenshots & Demo Media
-- ![TempoForge Dashboard — DaisyUI (default)](docs/screenshots/dashboard.png)
-- ![TempoForge Immersive HUD — Experimental](docs/screenshots/hud.png)
+- ![TempoForge Dashboard â€” DaisyUI (default)](docs/screenshots/dashboard.png)
+- ![TempoForge Immersive HUD â€” Experimental](docs/screenshots/hud.png)
 
 > Placeholder captures ship in `docs/screenshots/`. Replace them with live captures before public release.
 
