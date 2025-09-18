@@ -1,22 +1,28 @@
-import React from 'react'
-import { Droplet } from 'lucide-react'
-import type { Project } from '../../api/projects'
+import React from "react";
+import { Droplet } from "lucide-react";
+import type { Project } from "../../api/projects";
 
-type DurationOption = number | 'custom'
+type DurationOption = number | "custom";
 
 type QuickStartCardProps = {
-  projects: Project[]
-  favorites: Project[]
-  loading?: boolean
-  error?: string | null
-  plannedProjectId: string | null
-  plannedDurationMinutes: number
-  sprintStarting?: boolean
-  onPlanSprint: (projectId: string | null, durationMinutes: number) => void
-  onStartSprint: (projectId: string, durationMinutes: number) => Promise<void>
-  onAddProject: (name: string, track: number, isFavorite: boolean) => Promise<void>
-  onToggleFavorite: (projectId: string, nextValue: boolean) => Promise<void>
-}
+  projects: Project[];
+  favorites: Project[];
+  loading?: boolean;
+  error?: string | null;
+  plannedProjectId: string | null;
+  plannedDurationMinutes: number;
+  sprintStarting?: boolean;
+  onPlanSprint: (projectId: string | null, durationMinutes: number) => void;
+  onStartSprint: (projectId: string, durationMinutes: number) => Promise<void>;
+  onAddProject: (
+    name: string,
+    track: number,
+    isFavorite: boolean,
+  ) => Promise<void>;
+  onToggleFavorite: (projectId: string, nextValue: boolean) => Promise<void>;
+};
+
+const DURATION_OPTIONS: DurationOption[] = [15, 25, 45, "custom"];
 
 export default function QuickStartCard({
   projects,
@@ -31,173 +37,242 @@ export default function QuickStartCard({
   onAddProject,
   onToggleFavorite,
 }: QuickStartCardProps) {
-  const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(plannedProjectId)
-  const [duration, setDuration] = React.useState<DurationOption>(plannedDurationMinutes)
-  const [pending, setPending] = React.useState<boolean>(false)
+  const [selectedProjectId, setSelectedProjectId] = React.useState<
+    string | null
+  >(plannedProjectId);
+  const [duration, setDuration] = React.useState<DurationOption>(
+    plannedDurationMinutes,
+  );
+  const [pending, setPending] = React.useState(false);
 
   React.useEffect(() => {
-    setSelectedProjectId(plannedProjectId)
-  }, [plannedProjectId])
+    setSelectedProjectId(plannedProjectId);
+  }, [plannedProjectId]);
 
   React.useEffect(() => {
-    setDuration(plannedDurationMinutes)
-  }, [plannedDurationMinutes])
+    setDuration(plannedDurationMinutes);
+  }, [plannedDurationMinutes]);
 
-  React.useEffect(() => {
-    if (selectedProjectId) {
-      const numericDuration = typeof duration === 'number' ? duration : plannedDurationMinutes
-      onPlanSprint(selectedProjectId, numericDuration)
-    }
-  }, [selectedProjectId])
+  const announcePlan = React.useCallback(
+    (projectId: string | null, minutes: number) => {
+      onPlanSprint(projectId, minutes);
+    },
+    [onPlanSprint],
+  );
 
   const handleSelectProject = React.useCallback(
     (projectId: string) => {
-      setSelectedProjectId(projectId)
-      const numericDuration = typeof duration === 'number' ? duration : plannedDurationMinutes
-      onPlanSprint(projectId, numericDuration)
+      setSelectedProjectId(projectId);
+      const minutes =
+        typeof duration === "number" ? duration : plannedDurationMinutes;
+      announcePlan(projectId, minutes);
     },
-    [duration, onPlanSprint, plannedDurationMinutes],
-  )
+    [announcePlan, duration, plannedDurationMinutes],
+  );
 
   const handleDurationChange = React.useCallback(
     (option: DurationOption) => {
-      if (option === 'custom') {
-        const input = window.prompt('Enter sprint duration (minutes)', String(plannedDurationMinutes))
+      if (option === "custom") {
+        const input = window.prompt(
+          "Custom duration (minutes)",
+          String(plannedDurationMinutes),
+        );
         if (!input) {
-          return
+          return;
         }
-        const minutes = Number.parseInt(input, 10)
-        if (!Number.isFinite(minutes) || minutes <= 0 || minutes > 180) {
-          window.alert('Please enter a value between 1 and 180 minutes.')
-          return
+        const parsed = Number.parseInt(input, 10);
+        if (!Number.isFinite(parsed) || parsed <= 0) {
+          window.alert("Enter a positive number of minutes.");
+          return;
         }
-        setDuration(minutes)
-        onPlanSprint(selectedProjectId, minutes)
-        return
+        const minutes = Math.min(Math.max(parsed, 1), 180);
+        setDuration(minutes);
+        announcePlan(selectedProjectId, minutes);
+        return;
       }
-      setDuration(option)
-      onPlanSprint(selectedProjectId, option)
+      setDuration(option);
+      announcePlan(selectedProjectId, option);
     },
-    [onPlanSprint, plannedDurationMinutes, selectedProjectId],
-  )
+    [announcePlan, plannedDurationMinutes, selectedProjectId],
+  );
 
   const handleAddProject = React.useCallback(async () => {
-    const name = window.prompt('Project name')?.trim()
+    const name = window.prompt("Project name")?.trim();
     if (!name) {
-      return
+      return;
     }
-    const trackStr = window.prompt('Track (1=Work, 2=Study)', '1') || '1'
-    const track = Number(trackStr) === 2 ? 2 : 1
-    const favorite = window.confirm('Mark as favorite?')
-    try {
-      await onAddProject(name, track, favorite)
-    } catch (error) {
-      console.error('Failed to add project', error)
-      window.alert('Failed to add project. Please try again.')
-    }
-  }, [onAddProject])
+    const trackValue = window.prompt("Track (1 = Work, 2 = Study)", "1") ?? "1";
+    const track = Number.parseInt(trackValue, 10) === 2 ? 2 : 1;
+    const favorite = window.confirm("Mark as favorite?");
+    await onAddProject(name, track, favorite);
+  }, [onAddProject]);
 
   const handleToggleFavorite = React.useCallback(
     async (project: Project) => {
-      try {
-        await onToggleFavorite(project.id, !project.isFavorite)
-      } catch (error) {
-        console.error('Failed to toggle favorite', error)
-        window.alert('Unable to update favorite right now.')
-      }
+      await onToggleFavorite(project.id, !project.isFavorite);
     },
     [onToggleFavorite],
-  )
+  );
 
   const handleStart = React.useCallback(async () => {
     if (!selectedProjectId) {
-      window.alert('Select a project before starting a sprint.')
-      return
+      window.alert("Select a project before starting a sprint.");
+      return;
     }
-    const minutes = typeof duration === 'number' ? duration : plannedDurationMinutes
-    setPending(true)
+    const minutes =
+      typeof duration === "number" ? duration : plannedDurationMinutes;
+    setPending(true);
     try {
-      await onStartSprint(selectedProjectId, minutes)
+      await onStartSprint(selectedProjectId, minutes);
     } catch (error) {
-      console.error('Failed to start sprint', error)
-      window.alert('Failed to start sprint. Please try again.')
+      console.error("Failed to start sprint", error);
+      window.alert("Failed to start sprint. Please try again.");
     } finally {
-      setPending(false)
+      setPending(false);
     }
-  }, [duration, onStartSprint, plannedDurationMinutes, selectedProjectId])
+  }, [duration, onStartSprint, plannedDurationMinutes, selectedProjectId]);
+
+  const allProjectsEmpty = !loading && projects.length === 0;
+  const effectiveDuration =
+    typeof duration === "number" ? duration : plannedDurationMinutes;
 
   return (
     <div className="card bg-neutral text-neutral-content">
       <div className="card-body">
-        <h2 className="card-title font-cinzel text-primary">Quick Start</h2>
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="card-title font-cinzel text-primary">Quick Start</h2>
+          <span className="text-xs uppercase tracking-[0.3em] opacity-60">
+            {effectiveDuration}m
+          </span>
+        </div>
+
+        {error && (
+          <div className="rounded bg-base-100/10 px-3 py-2 text-sm text-error-content">
+            {error}
+          </div>
+        )}
+
         {loading ? (
           <div className="space-y-3">
-            <div className="h-10 animate-pulse rounded bg-base-100/10" />
-            <div className="h-10 animate-pulse rounded bg-base-100/10" />
-            <div className="h-10 animate-pulse rounded bg-base-100/10" />
+            {[0, 1, 2].map((skeleton) => (
+              <div
+                key={skeleton}
+                className="h-10 animate-pulse rounded bg-base-100/10"
+              />
+            ))}
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            {error && <div className="rounded bg-base-100/10 px-3 py-2 text-sm text-error-content">{error}</div>}
             <div>
               <div className="flex flex-wrap items-center gap-2">
-                {favorites.map(project => (
-                  <button
-                    key={project.id}
-                    onClick={() => handleSelectProject(project.id)}
-                    className={
-ounded-full border px-3 py-1 transition-colors }
-                  >
-                    {project.name}
-                  </button>
-                ))}
-                <button onClick={handleAddProject} className="rounded-full bg-gray-600 px-3 py-1 text-white hover:bg-gray-500">
+                {favorites.map((project) => {
+                  const isSelected = selectedProjectId === project.id;
+                  return (
+                    <button
+                      key={project.id}
+                      type="button"
+                      onClick={() => handleSelectProject(project.id)}
+                      className={`rounded-full border px-3 py-1 transition-colors ${
+                        isSelected
+                          ? "border-yellow-700 bg-yellow-500 text-black"
+                          : "border-gray-600 bg-gray-800 text-gray-200"
+                      }`}
+                    >
+                      {project.name}
+                    </button>
+                  );
+                })}
+                <button
+                  type="button"
+                  onClick={handleAddProject}
+                  className="rounded-full bg-gray-600 px-3 py-1 text-white"
+                >
                   + Add
                 </button>
               </div>
               {favorites.length === 0 && (
-                <div className="mt-3 text-sm opacity-80">Make a project a favorite to quick-launch it.</div>
+                <div className="mt-3 text-sm opacity-70">
+                  Mark a project as favorite to quick-launch it.
+                </div>
               )}
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {[15, 25, 45, 'custom' as const].map(value => (
-                <button
-                  key={value.toString()}
-                  onClick={() => handleDurationChange(value)}
-                  className={tn btn-sm }
-                >
-                  {value === 'custom' ? 'Custom' : ${value}m}
-                </button>
-              ))}
+              {DURATION_OPTIONS.map((value) => {
+                const isSelected =
+                  typeof value === "number"
+                    ? duration === value
+                    : duration === "custom";
+                return (
+                  <button
+                    key={value.toString()}
+                    type="button"
+                    onClick={() => handleDurationChange(value)}
+                    className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-ghost"}`}
+                  >
+                    {value === "custom" ? "Custom" : `${value}m`}
+                  </button>
+                );
+              })}
             </div>
 
-            <div>
+            <div className="flex flex-col gap-2">
               <button
+                type="button"
                 className="btn btn-lg bg-red-700 text-white hover:bg-red-600"
                 onClick={handleStart}
                 disabled={pending || sprintStarting || !selectedProjectId}
               >
-                {pending || sprintStarting ? 'Starting…' : 'Start Sprint'}
+                {pending || sprintStarting ? "Startingï¿½" : "Start Sprint"}
               </button>
+              <span className="text-xs opacity-70">
+                {selectedProjectId
+                  ? "Ready when you are."
+                  : "Select a project to stage your next sprint."}
+              </span>
             </div>
 
-            <div className="mt-2">
+            <div>
               <div className="mb-1 text-sm opacity-70">All Projects</div>
-              <ul className="divide-y divide-base-100/20">
-                {projects.map(project => (
-                  <li key={project.id} className="flex items-center justify-between py-2">
-                    <span>{project.name}</span>
-                    <button onClick={() => handleToggleFavorite(project)} aria-label="Toggle favorite">
-                      <Droplet className={project.isFavorite ? 'text-red-600' : 'text-gray-500 hover:text-red-500'} />
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {allProjectsEmpty ? (
+                <div className="rounded bg-base-100/10 px-3 py-2 text-sm opacity-70">
+                  Create your first project to get started.
+                </div>
+              ) : (
+                <ul className="divide-y divide-base-100/25">
+                  {projects.map((project) => (
+                    <li
+                      key={project.id}
+                      className="flex items-center justify-between py-2"
+                    >
+                      <button
+                        type="button"
+                        className={`text-left ${selectedProjectId === project.id ? "font-semibold text-yellow-200" : ""}`}
+                        onClick={() => handleSelectProject(project.id)}
+                      >
+                        {project.name}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleToggleFavorite(project)}
+                        aria-label="Toggle favorite"
+                      >
+                        <Droplet
+                          className={
+                            project.isFavorite
+                              ? "text-red-600"
+                              : "text-gray-500 hover:text-red-500"
+                          }
+                        />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         )}
       </div>
     </div>
-  )
+  );
 }
