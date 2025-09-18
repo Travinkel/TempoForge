@@ -1,9 +1,12 @@
-name: CI
+name: Build & Test (.NET + Testcontainers)
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -17,6 +20,14 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: 1
       DOTNET_NOLOGO: true
+      COMPOSE_PROJECT_NAME: tempoforge
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+      TESTCONTAINERS_HOST_OVERRIDE: localhost
+
+    services:
+      docker:
+        image: docker:dind
+        privileged: true
 
     steps:
       - name: Checkout
@@ -76,7 +87,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
+          cache: npm
           cache-dependency-path: client/tempoforge-web/package-lock.json
 
       - name: Install deps
@@ -96,4 +107,3 @@ jobs:
         with:
           name: web-dist
           path: client/tempoforge-web/dist
-
