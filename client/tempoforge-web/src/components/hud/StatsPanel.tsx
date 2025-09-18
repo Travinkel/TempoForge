@@ -4,11 +4,12 @@ export type StatsPanelProps = {
   streakDays?: number | null;
   todayMinutes?: number | null;
   todaySprints?: number | null;
+  totalSprints?: number | null;
   loading?: boolean;
   className?: string;
 };
 
-const formatValue = (value?: number | null, suffix?: string) => {
+const formatValue = (value?: number | null, suffix = "") => {
   if (value === null || value === undefined) {
     return "--";
   }
@@ -19,12 +20,14 @@ export default function StatsPanel({
   streakDays,
   todayMinutes,
   todaySprints,
+  totalSprints,
   loading = false,
   className = "",
 }: StatsPanelProps) {
   const streakText = loading ? "--" : formatValue(streakDays, " days");
   const minutesText = loading ? "--" : formatValue(todayMinutes, " m focus");
-  const sprintsText = loading ? "--" : formatValue(todaySprints);
+  const sprintsTodayText = loading ? "--" : formatValue(todaySprints);
+  const lifetimeText = loading ? "--" : formatValue(totalSprints);
 
   return (
     <div className={`relative w-[260px] text-yellow-50 ${className}`}>
@@ -42,18 +45,23 @@ export default function StatsPanel({
             {streakText}
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-1 text-[13px] text-yellow-100/85">
-          <div className="flex justify-between">
-            <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
-              Today
+        <div className="grid grid-cols-1 gap-2 text-[13px] text-yellow-100/85">
+          <div className="flex flex-col text-right">
+            <div className="flex justify-between">
+              <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
+                Today
+              </span>
+              <span className="font-semibold">{minutesText}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
+                Sprints
+              </span>
+              <span className="font-semibold">{sprintsTodayText}</span>
+            </div>
+            <span className="text-[11px] uppercase tracking-[0.25em] text-amber-200/60">
+              Lifetime {lifetimeText}
             </span>
-            <span className="font-semibold">{minutesText}</span>
-          </div>
-          <div className="flex justify-between">
-            <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
-              Sprints
-            </span>
-            <span className="font-semibold">{sprintsText}</span>
           </div>
         </div>
       </div>
