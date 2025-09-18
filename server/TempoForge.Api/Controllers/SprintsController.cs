@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using TempoForge.Application.Sprints;
 
 namespace TempoForge.Api.Controllers;
 
@@ -6,25 +8,63 @@ namespace TempoForge.Api.Controllers;
 [Route("api/[controller]")]
 public class SprintsController : ControllerBase
 {
-    public record TodayStatsDto(int Minutes, int Sprints, int StreakDays);
-    public record RecentSprintDto(Guid Id, string Project, int DurationMinutes, DateTime StartedAtUtc);
+    private readonly ISprintService _service;
 
-    // Stub: return sample numbers. In future, calculate from DB.
-    [HttpGet("today")]
-    public ActionResult<TodayStatsDto> GetToday()
-        => Ok(new TodayStatsDto(Minutes: 50, Sprints: 2, StreakDays: 4));
-
-    // Stub recent list
-    [HttpGet("recent")]
-    public ActionResult<IEnumerable<RecentSprintDto>> GetRecent()
+    public SprintsController(ISprintService service)
     {
-        var now = DateTime.UtcNow;
-        var list = new List<RecentSprintDto>
-        {
-            new RecentSprintDto(Guid.NewGuid(), "Client Alpha", 25, now.AddHours(-5)),
-            new RecentSprintDto(Guid.NewGuid(), "Thesis Article", 45, now.AddDays(-1).AddHours(-2)),
-            new RecentSprintDto(Guid.NewGuid(), "Algorithms Review", 15, now.AddDays(-1).AddHours(-10))
-        };
-        return Ok(list);
+        _service = service;
+    }
+
+    [HttpPost("start")]
+    public async Task<ActionResult<SprintDto>> Start([FromBody] SprintStartDto dto, CancellationToken ct)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        var sprint = await _service.StartAsync(dto, ct);
+        return CreatedAtAction(nameof(GetById), new { id = sprint.Id }, SprintDto.From(sprint));
+    }
+
+    [HttpPost("{id:guid}/complete")]
+    public async Task<ActionResult<SprintDto>> Complete(Guid id, CancellationToken ct)
+    {
+        var sprint = await _service.CompleteAsync(id, ct);
+        if (sprint is null)
+            return NotFound();
+        return Ok(SprintDto.From(sprint));
+    }
+
+    [HttpPost("{id:guid}/abort")]
+    public async Task<ActionResult<SprintDto>> Abort(Guid id, CancellationToken ct)
+    {
+        var sprint = await _service.AbortAsync(id, ct);
+        if (sprint is null)
+            return NotFound();
+        return Ok(SprintDto.From(sprint));
+    }
+
+    [HttpGet("running")]
+    public async Task<ActionResult<SprintDto>> GetRunning(CancellationToken ct)
+    {
+        var sprint = await _service.GetRunningAsync(ct);
+        if (sprint is null)
+            return NoContent();
+        return Ok(SprintDto.From(sprint));
+    }
+
+    [HttpGet("recent")]
+    public async Task<ActionResult<IEnumerable<RecentSprintDto>>> GetRecent([FromQuery] int take = 5, CancellationToken ct = default)
+    {
+        var sprints = await _service.GetRecentAsync(take, ct);
+        return Ok(sprints.Select(RecentSprintDto.From));
+    }
+
+    [HttpGet("{id:guid}")]
+    public async Task<ActionResult<SprintDto>> GetById(Guid id, CancellationToken ct)
+    {
+        var sprint = await _service.GetAsync(id, ct);
+        if (sprint is null)
+            return NotFound();
+        return Ok(SprintDto.From(sprint));
     }
 }
