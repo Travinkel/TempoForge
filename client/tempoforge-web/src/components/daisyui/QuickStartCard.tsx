@@ -1,6 +1,9 @@
 import React from "react";
 import { Droplet } from "lucide-react";
-import type { Project } from "../../api/projects";
+import type {
+  Project,
+  ProjectCreateRequest,
+} from "../../api/projects";
 
 type DurationOption = number | "custom";
 
@@ -15,7 +18,7 @@ type QuickStartCardProps = {
   sprintStarting?: boolean;
   onPlanSprint: (projectId: string | null, durationMinutes: number) => void;
   onStartSprint: (projectId: string, durationMinutes: number) => Promise<void>;
-  onAddProject: (name: string, isFavorite: boolean) => Promise<void>;
+  onAddProject: (input: ProjectCreateRequest) => Promise<void>;
   onToggleFavorite: (projectId: string, nextValue: boolean) => Promise<void>;
 };
 
@@ -102,7 +105,7 @@ export default function QuickStartCard({
       return;
     }
     const favorite = window.confirm("Mark as favorite?");
-    await onAddProject(name, favorite);
+    await onAddProject({ name, isFavorite: favorite });
   }, [onAddProject]);
 
   const handleToggleFavorite = React.useCallback(

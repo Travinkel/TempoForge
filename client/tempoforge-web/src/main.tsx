@@ -35,7 +35,7 @@ function Projects() {
     setError(null);
     try {
       if (!name) return;
-      await addProject(name, isFavorite);
+      await addProject({ name, isFavorite });
       setItems(await getProjects());
       setName("");
       setIsFavorite(false);

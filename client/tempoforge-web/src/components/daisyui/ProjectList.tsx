@@ -1,12 +1,7 @@
 import React from "react";
+import type { Project } from "../../api/projects";
 
-export type Project = {
-  id: string;
-  name: string;
-  isFavorite: boolean;
-  createdAt: string;
-  lastUsedAt: string | null;
-};
+export type { Project };
 
 const formatTimestamp = (
   value: string | null | undefined,
