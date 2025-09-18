@@ -59,14 +59,20 @@ var app = builder.Build();
 // Apply migrations at startup (both dev + production)
 using (var scope = app.Services.CreateScope())
 {
-    var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
-    db.Database.Migrate();
-
-    if (app.Environment.IsDevelopment())
+    try
     {
-        await TempoForgeSeeder.SeedAsync(db);
+        var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
+        await db.Database.MigrateAsync();
+        if (app.Environment.IsDevelopment())
+            await TempoForgeSeeder.SeedAsync(db);
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "Database migration failed at startup");
     }
 }
+
 
 // Middleware pipeline
 app.UseGlobalProblemDetails();
@@ -74,6 +80,14 @@ app.UseCors("web");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+
+// Simple health check endpoint
+app.MapGet("/health", () => Results.Ok(new 
+{
+    status = "ok",
+    timeUtc = DateTime.UtcNow
+}));
+
 
 app.Run();
 
