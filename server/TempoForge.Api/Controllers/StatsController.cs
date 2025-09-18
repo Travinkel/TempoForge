@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using TempoForge.Application.Stats;
+using TempoForge.Application.Sprints;
 
 namespace TempoForge.Api.Controllers;
 
@@ -7,9 +7,9 @@ namespace TempoForge.Api.Controllers;
 [Route("api/[controller]")]
 public class StatsController : ControllerBase
 {
-    private readonly IStatsService _service;
+    private readonly ISprintService _service;
 
-    public StatsController(IStatsService service)
+    public StatsController(ISprintService service)
     {
         _service = service;
     }
@@ -17,12 +17,12 @@ public class StatsController : ControllerBase
     [HttpGet("today")]
     public async Task<ActionResult<TodayStatsDto>> GetToday(CancellationToken ct)
     {
-        var stats = await _service.GetTodayAsync(ct);
+        var stats = await _service.GetTodayStatsAsync(ct);
         return Ok(stats);
     }
 
     [HttpGet("progress")]
-    public async Task<ActionResult<ProgressStatsDto>> GetProgress(CancellationToken ct)
+    public async Task<ActionResult<ProgressDto>> GetProgress(CancellationToken ct)
     {
         var stats = await _service.GetProgressAsync(ct);
         return Ok(stats);
