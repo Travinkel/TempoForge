@@ -1,8 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using TempoForge.Application.Projects;
-using TempoForge.Infrastructure.Data;
 using Microsoft.OpenApi.Models;
 using TempoForge.Api.Middleware;
+using TempoForge.Application.Projects;
+using TempoForge.Application.Sprints;
+using TempoForge.Application.Stats;
+using TempoForge.Infrastructure.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,8 @@ var conn = builder.Configuration.GetConnectionString("Default")
 builder.Services.AddDbContext<TempoForgeDbContext>(o => o.UseNpgsql(conn));
 
 builder.Services.AddScoped<IProjectService, ProjectService>();
+builder.Services.AddScoped<ISprintService, SprintService>();
+builder.Services.AddScoped<IStatsService, StatsService>();
 
 builder.Services.AddCors(o => o.AddPolicy("web", p => p
     .WithOrigins(builder.Configuration["ClientOrigin"] ?? "http://localhost:5173")
@@ -36,7 +40,6 @@ builder.Services.AddCors(o => o.AddPolicy("web", p => p
 
 var app = builder.Build();
 
-// Auto-apply migrations in Development
 if (app.Environment.IsDevelopment())
 {
     using var scope = app.Services.CreateScope();
@@ -44,16 +47,11 @@ if (app.Environment.IsDevelopment())
     db.Database.Migrate();
 }
 
-// Global exception handling with ProblemDetails
 app.UseGlobalProblemDetails();
-
 app.UseCors("web");
-
 app.UseSwagger();
 app.UseSwaggerUI();
-
 app.MapControllers();
-
 app.Run();
 
 public partial class Program { }
