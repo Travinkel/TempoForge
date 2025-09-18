@@ -169,15 +169,17 @@ function DashboardPage(): JSX.Element {
     [todayStats],
   );
 
-  const summaryStreakText = statsSummary.streakDays === null || statsSummary.streakDays === undefined
-    ? '--'
-    : `${summaryStreakText} day${statsSummary.streakDays === 1 ? '' : 's'}`;
-  const summaryMinutesText = statsSummary.todayMinutes === null || statsSummary.todayMinutes === undefined
-    ? '--'
-    : `${summaryMinutesText} m`;
-  const summarySprintsText = statsSummary.todaySprints === null || statsSummary.todaySprints === undefined
-    ? '--'
-    : `${summarySprintsText}`;
+  const hasTodayStats = !metricsLoading && todayStats !== null;
+
+  const summaryStreakText = hasTodayStats
+    ? `${statsSummary.streakDays} day${statsSummary.streakDays === 1 ? '' : 's'}`
+    : '--';
+  const summaryMinutesText = hasTodayStats
+    ? `${statsSummary.todayMinutes} m`
+    : '--';
+  const summarySprintsText = hasTodayStats
+    ? `${statsSummary.todaySprints}`
+    : '--';
 
   const recentItems = React.useMemo(() => {
     return recentSprints.map((item) => ({
@@ -350,6 +352,7 @@ function DashboardPage(): JSX.Element {
             onStartSprint={handleStartSprint}
             onAddProject={handleQuickAddProject}
             onToggleFavorite={handleToggleFavorite}
+            onErrorMessage={setQuickStartError}
           />
           <StatsCard
             minutes={statsCardData.minutes}
@@ -483,3 +486,4 @@ function DashboardPage(): JSX.Element {
 }
 
 export default DashboardPage;
+

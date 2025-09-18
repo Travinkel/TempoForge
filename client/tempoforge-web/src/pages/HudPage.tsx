@@ -1,4 +1,4 @@
-import React from "react";
+﻿import React from "react";
 import AvatarSprite from "../components/hud/AvatarSprite";
 import LifeOrb from "../components/hud/LifeOrb";
 import ManaOrb from "../components/hud/ManaOrb";
@@ -23,7 +23,9 @@ export default function HudPage(): JSX.Element {
     questDaily,
     questWeekly,
     statsSummary,
+    todayStats,
     progressStats,
+    metricsLoading,
     metricsError,
     refreshMetrics,
     startSprint,
@@ -31,7 +33,6 @@ export default function HudPage(): JSX.Element {
     completeSprint,
   } = useSprintContext();
   const { setLayout } = useUserSettings();
-  const showLayoutToggle = !import.meta.env.PROD;
   const handleReturnToDashboard = React.useCallback(() => {
     setLayout("daisyui");
   }, [setLayout]);
@@ -131,7 +132,9 @@ export default function HudPage(): JSX.Element {
               <StatsPanel
                 streakDays={statsSummary.streakDays}
                 todayMinutes={statsSummary.todayMinutes}
+                todaySprints={statsSummary.todaySprints}
                 totalSprints={statsSummary.totalSprints}
+                loading={metricsLoading}
               />
               <ManaOrb progress={remainingRatio} />
             </div>
@@ -177,3 +180,8 @@ export default function HudPage(): JSX.Element {
     </div>
   );
 }
+
+
+
+
+

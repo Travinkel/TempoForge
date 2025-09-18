@@ -7,6 +7,7 @@ import {
   type ProgressStats,
   type RecentSprint,
 } from '../api/sprints';
+import { getActiveQuests, type QuestSummary } from '../api/quests';
 
 type UseSprintMetricsOptions = {
   refreshIntervalMs?: number;
@@ -16,6 +17,7 @@ type SprintMetricsState = {
   todayStats: TodayStats | null;
   progressStats: ProgressStats | null;
   recentSprints: RecentSprint[];
+  quests: QuestSummary[];
   loading: boolean;
   error: string | null;
   refresh: (withSpinner?: boolean) => Promise<void>;
@@ -26,6 +28,7 @@ export function useSprintMetrics(options: UseSprintMetricsOptions = {}): SprintM
   const [todayStats, setTodayStats] = React.useState<TodayStats | null>(null);
   const [progressStats, setProgressStats] = React.useState<ProgressStats | null>(null);
   const [recentSprints, setRecentSprints] = React.useState<RecentSprint[]>([]);
+  const [quests, setQuests] = React.useState<QuestSummary[]>([]);
   const [loading, setLoading] = React.useState<boolean>(false);
   const [error, setError] = React.useState<string | null>(null);
   const mountedRef = React.useRef(true);
@@ -40,10 +43,11 @@ export function useSprintMetrics(options: UseSprintMetricsOptions = {}): SprintM
     }
 
     try {
-      const [today, progress, recent] = await Promise.all([
+      const [today, progress, recent, questSummaries] = await Promise.all([
         getTodayStats(),
         getProgressStats(),
         getRecentSprints(5),
+        getActiveQuests(),
       ]);
 
       if (!mountedRef.current) {
@@ -53,6 +57,7 @@ export function useSprintMetrics(options: UseSprintMetricsOptions = {}): SprintM
       setTodayStats(today);
       setProgressStats(progress);
       setRecentSprints(recent);
+      setQuests(questSummaries);
       setError(null);
     } catch (err) {
       if (!mountedRef.current) {
@@ -99,6 +104,7 @@ export function useSprintMetrics(options: UseSprintMetricsOptions = {}): SprintM
     todayStats,
     progressStats,
     recentSprints,
+    quests,
     loading,
     error,
     refresh,
