@@ -1,23 +1,33 @@
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
-import { Droplet } from 'lucide-react'
 import Navbar from './components/Navbar'
 import LoadingScreen from './components/LoadingScreen'
-import LifeOrb from './components/LifeOrb'
-import ManaOrb from './components/ManaOrb'
-import QuestPanel from './components/QuestPanel'
-import StatsPanel from './components/StatsPanel'
-import ActionBar from './components/ActionBar'
+import LifeOrb from './components/hud/LifeOrb'
+import ManaOrb from './components/hud/ManaOrb'
+import QuestPanel from './components/hud/QuestPanel'
+import StatsPanel from './components/hud/StatsPanel'
+import ActionBar from './components/hud/ActionBar'
+import AvatarSprite from './components/AvatarSprite'
+import QuickStartCard from './components/daisyui/QuickStartCard'
+import StatsCard from './components/daisyui/StatsCard'
+import RecentCard from './components/daisyui/RecentCard'
+import FavoritesCard from './components/daisyui/FavoritesCard'
 import { useSprintSounds } from './hooks/useSprintSounds'
+import { usePortalCinematics, type PortalCinematicState } from './hooks/usePortalCinematics'
 import './index.css'
 
 console.log('API base:', import.meta.env.VITE_API_BASE_URL)
 
-function DashboardShell({ children }: { children: React.ReactNode }) {
+function DashboardShell({ children, portalState = 'idle' }: { children: React.ReactNode; portalState?: PortalCinematicState }) {
   return (
     <div className="relative min-h-screen bg-black text-base-content">
       <div className="town-porthole" />
+      <div className="absolute inset-0 z-[5] pointer-events-none">
+        <div className="absolute bottom-[9%] left-1/2 -translate-x-1/2">
+          <AvatarSprite state={portalState} />
+        </div>
+      </div>
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-black via-black/30 to-black" />
 
       <div className="relative z-10">
@@ -31,94 +41,6 @@ function DashboardShell({ children }: { children: React.ReactNode }) {
 import type { Project } from './api/projects'
 import { getProjects, addProject, updateProject } from './api/projects'
 
-function QuickStartCard() {
-  const [projects, setProjects] = React.useState<Project[]>([])
-  const [selectedProjectId, setSelectedProjectId] = React.useState<string | null>(null)
-  const [duration, setDuration] = React.useState<number | 'custom'>(25)
-
-  const favorites = projects.filter(p => p.isFavorite)
-
-  React.useEffect(() => {
-    getProjects().then(setProjects).catch(() => {})
-  }, [])
-
-  const onAddProject = async () => {
-    const name = window.prompt('Project name')?.trim()
-    if (!name) return
-    const trackStr = window.prompt('Track (1=Work, 2=Study)', '1') || '1'
-    const track = Number(trackStr) === 2 ? 2 : 1
-    const fav = window.confirm('Mark as favorite?')
-    await addProject(name, track, fav)
-    setProjects(await getProjects())
-  }
-
-  const toggleFavorite = async (p: Project) => {
-    await updateProject(p.id, { isFavorite: !p.isFavorite })
-    setProjects(await getProjects())
-  }
-
-  return (
-    <div className="card bg-neutral text-neutral-content">
-      <div className="card-body">
-        <h2 className="card-title font-cinzel text-primary">Quick Start</h2>
-        <div className="flex flex-col gap-4">
-          <div>
-            <div className="flex gap-2 flex-wrap items-center">
-              {favorites.map(p => (
-                <button
-                  key={p.id}
-                  onClick={() => setSelectedProjectId(p.id)}
-                  className={`px-3 py-1 rounded-full border transition-colors ${
-                    selectedProjectId === p.id
-                      ? 'bg-yellow-600 text-black border-yellow-700'
-                      : 'bg-gray-800 text-gray-200 border-gray-600'
-                  }`}
-                >
-                  {p.name}
-                </button>
-              ))}
-              <button onClick={onAddProject} className="px-3 py-1 rounded-full bg-gray-600 text-white hover:bg-gray-500">+ Add</button>
-            </div>
-            {favorites.length === 0 && (
-              <div className="mt-3 text-sm opacity-80">
-                Forge your first favorite ??
-              </div>
-            )}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {[15, 25, 45, 'custom' as const].map(v => (
-              <button key={v.toString()} onClick={() => setDuration(v)} className={`btn btn-sm ${duration === v ? 'btn-primary' : ''}`}>
-                {v === 'custom' ? 'Custom' : `${v}m`}
-              </button>
-            ))}
-          </div>
-
-          <div>
-            <button className="btn bg-red-700 text-white border-red-800 hover:bg-red-600 hover:shadow-[0_0_20px_rgba(220,38,38,0.6)] btn-lg">
-              Start Sprint
-            </button>
-          </div>
-
-          <div className="mt-2">
-            <div className="text-sm mb-1 opacity-70">Favorites</div>
-            <ul className="divide-y divide-base-100/20">
-              {projects.map(p => (
-                <li key={p.id} className="flex items-center justify-between py-2">
-                  <span>{p.name}</span>
-                  <button onClick={() => toggleFavorite(p)} aria-label="Toggle favorite">
-                    <Droplet className={p.isFavorite ? 'text-red-600' : 'text-gray-500 hover:text-red-500'} />
-                  </button>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function TimerCard() {
   return (
     <div className="card bg-neutral text-neutral-content h-full">
@@ -131,27 +53,7 @@ function TimerCard() {
   )
 }
 
-function StatsRow() {
-  const stats = [
-    { label: 'Minutes today', value: '50' },
-    { label: 'Sprints', value: '2' },
-    { label: 'Streak', value: '4 days' },
-  ]
-  return (
-    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-      {stats.map(s => (
-        <div key={s.label} className="card bg-neutral text-neutral-content">
-          <div className="card-body p-4">
-            <div className="text-sm opacity-70">{s.label}</div>
-            <div className="text-2xl font-bold">{s.value}</div>
-          </div>
-        </div>
-      ))}
-    </div>
-  )
-}
-
-function ProgressRow() {
+function ProgressCard() {
   const pct = 42
   return (
     <div className="card bg-neutral text-neutral-content">
@@ -176,61 +78,14 @@ function ProgressRow() {
   )
 }
 
-function PinnedProjects() {
-  const items = ['Thesis Article', 'Client Alpha', 'Algorithms Review', 'Personal Site']
-  return (
-    <div className="card bg-neutral text-neutral-content">
-      <div className="card-body">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="card-title font-cinzel text-primary">Favorites</h2>
-        </div>
-        <div className="no-scrollbar flex gap-2 overflow-x-auto">
-          {items.map(x => (
-            <div key={x} className="whitespace-nowrap px-4 py-2 rounded-full border border-yellow-700/60 bg-gradient-to-b from-[#3b3b3b] to-[#222] text-yellow-200 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">{x}</div>
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function RecentHistory() {
-  const items = [
-    { project: 'Client Alpha', duration: '25m', when: 'Today 14:10' },
-    { project: 'Thesis Article', duration: '45m', when: 'Yesterday 19:20' },
-    { project: 'Algorithms Review', duration: '15m', when: 'Yesterday 08:40' },
-  ]
-  return (
-    <div className="card bg-neutral text-neutral-content">
-      <div className="card-body">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="card-title font-cinzel text-primary">Recent History</h2>
-          <button className="btn btn-xs">Export</button>
-        </div>
-        <ul className="mt-2">
-          {items.map((i, idx) => (
-            <li key={idx} className="flex items-center justify-between py-2 border-b border-base-100/20 last:border-b-0">
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-primary rounded-full" />
-                <div>
-                  <div className="font-medium">{i.project}</div>
-                  <div className="text-sm opacity-70">{i.when}</div>
-                </div>
-              </div>
-              <div className="badge badge-secondary">{i.duration}</div>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </div>
-  )
-}
-
 function Dashboard() {
   const total = 25 * 60
   const [seconds, setSeconds] = React.useState(total)
   const [active, setActive] = React.useState(false)
   const sounds = useSprintSounds()
+  const { state: portalState, enterPortal, exitPortal, reset: resetPortal } = usePortalCinematics()
+  React.useEffect(() => () => resetPortal(), [resetPortal])
+
 
   React.useEffect(() => {
     if (!active) return
@@ -249,6 +104,12 @@ function Dashboard() {
     }
   }, [seconds, active, sounds])
 
+  React.useEffect(() => {
+    if (active && seconds === 0) {
+      exitPortal()
+    }
+  }, [active, seconds, exitPortal])
+
   const remainingRatio = seconds / total
   const completedRatio = 1 - remainingRatio
   const mm = Math.floor(seconds / 60).toString().padStart(2, '0')
@@ -261,12 +122,14 @@ function Dashboard() {
     setSeconds(total)
     setActive(true)
     sounds.playStart()
+    enterPortal()
   }
   const cancel = () => {
     if (!active) return
     setActive(false)
     sounds.stopHeartbeat()
     sounds.playCancel()
+    exitPortal()
   }
   const complete = () => {
     if (!active) return
@@ -284,14 +147,14 @@ function Dashboard() {
   const stats = { streakDays: 4, todayMinutes: 50, totalSprints: 2 }
 
   return (
-    <DashboardShell>
+    <DashboardShell portalState={portalState}>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 pb-[280px]">
         <div className="lg:col-span-2 space-y-4">
           <QuickStartCard />
-          <StatsRow />
-          <ProgressRow />
-          <PinnedProjects />
-          <RecentHistory />
+          <StatsCard />
+          <ProgressCard />
+          <FavoritesCard />
+          <RecentCard />
         </div>
         <div className="lg:col-span-1">
           <TimerCard />
@@ -331,21 +194,12 @@ function Dashboard() {
       </div>
 
       {active && (
-        <div className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm flex items-center justify-center">
-          <div className="space-y-6 text-center text-yellow-100">
-            <LifeOrb progress={remainingRatio} label={timerLabel} pulsing />
-            <ActionBar
-              progress={completedRatio}
-              timerLabel={timerLabel}
-              canStart={false}
-              canCancel
-              canComplete
-              onCancel={cancel}
-              onComplete={complete}
-              onViewStats={() => {}}
-              className="mx-auto"
-            />
-            <div className="text-sm opacity-80">Press Cancel to forfeit this sprint</div>
+        <div className="fixed inset-0 z-40 pointer-events-none">
+          <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center text-yellow-100">
+            <AvatarSprite state={portalState} />
+            <div className="font-cinzel text-sm uppercase tracking-[0.35em]">Focus Mode Engaged</div>
+            <div className="text-xs md:text-sm text-yellow-100/80 max-w-sm">Stay with the sprint. Use the action bar below if you need to cancel early.</div>
           </div>
         </div>
       )}
@@ -452,3 +306,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
     <AppRoot />
   </React.StrictMode>
 )
+
+
+
+
+
