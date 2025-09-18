@@ -18,10 +18,21 @@ public class ProjectsController : ControllerBase
 	}
 
 	[HttpGet]
-	public async Task<ActionResult<IEnumerable<ProjectDto>>> GetAll(CancellationToken ct)
+	public async Task<ActionResult<IEnumerable<ProjectDto>>> GetAll([FromQuery] bool? favorites, CancellationToken ct)
 	{
 		var items = await _service.GetAllAsync(ct);
+		if (favorites == true)
+			items = items.Where(p => p.IsFavorite).ToList();
 		return Ok(items.Select(ProjectDto.From));
+	}
+
+	// Shortcut endpoint: /api/projects/favorites
+	[HttpGet("favorites")]
+	public async Task<ActionResult<IEnumerable<ProjectDto>>> GetFavorites(CancellationToken ct)
+	{
+		var items = await _service.GetAllAsync(ct);
+		var favs = items.Where(p => p.IsFavorite).Select(ProjectDto.From).ToList();
+		return Ok(favs);
 	}
 
 	[HttpGet("{id:guid}")]
