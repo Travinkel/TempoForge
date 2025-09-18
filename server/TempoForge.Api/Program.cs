@@ -7,19 +7,16 @@ using TempoForge.Application.Quests;
 using TempoForge.Application.Sprints;
 using TempoForge.Application.Stats;
 using TempoForge.Infrastructure.Data;
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
-    db.Database.Migrate();
-}
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure Kestrel for Fly.io (port 8080)
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(8080); // Fly.io expects port 8080
+    options.ListenAnyIP(8080);
 });
 
+// Add services
 builder.Services.AddControllers()
     .ConfigureApiBehaviorOptions(options =>
     {
@@ -40,6 +37,7 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
+// Connection string
 var conn = builder.Configuration.GetConnectionString("Default")
            ?? builder.Configuration["ConnectionStrings:Default"]
            ?? "Host=localhost;Database=tempo;Username=tempo;Password=tempo";
@@ -58,21 +56,26 @@ builder.Services.AddCors(o => o.AddPolicy("web", p => p
 
 var app = builder.Build();
 
-
-
-if (app.Environment.IsDevelopment())
+// Apply migrations at startup (both dev + production)
+using (var scope = app.Services.CreateScope())
 {
-    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
-    await db.Database.MigrateAsync();
-    await TempoForgeSeeder.SeedAsync(db);
+    db.Database.Migrate();
+
+    if (app.Environment.IsDevelopment())
+    {
+        await TempoForgeSeeder.SeedAsync(db);
+    }
 }
 
+// Middleware pipeline
 app.UseGlobalProblemDetails();
 app.UseCors("web");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.MapControllers();
+
 app.Run();
 
+// Needed for integration testing
 public partial class Program { }
