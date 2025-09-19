@@ -124,7 +124,7 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
 3. Deploy the client container (static hosting) to Fly.io:
    ```bash
    fly launch --name tempoforge-web --path client/tempoforge-web --no-deploy
-   fly secrets set VITE_API_BASE_URL="https://tempoforge-api.fly.dev"
+   fly secrets set VITE_API_BASE_URL=https://tempoforge-api.fly.dev -a tempoforge-web
    fly deploy
    ```
 4. Verify `https://tempoforge-web.fly.dev` renders the DaisyUI dashboard by default; HUD toggle stays hidden in production per grading guidance.

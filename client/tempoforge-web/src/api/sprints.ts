@@ -1,7 +1,7 @@
 import axios from 'axios'
+import { API_BASE_URL } from '../config/env'
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000'
-const http = axios.create({ baseURL: API_BASE })
+const http = axios.create({ baseURL: API_BASE_URL })
 
 export type SprintDto = {
   id: string
@@ -98,11 +98,16 @@ export async function getProgressStats(): Promise<ProgressStats> {
 }
 
 export async function getRecentSprints(take = 5): Promise<RecentSprint[]> {
-  const { data } = await http.get<RecentSprint[]>('/api/sprints/recent', { params: { take } })
+  const { data } = await http.get<RecentSprint[]>('/api/sprints/recent', {
+    params: { take },
+  })
   return data
 }
 
-export async function startSprintRequest(projectId: string, durationMinutes: number): Promise<SprintDto> {
+export async function startSprintRequest(
+  projectId: string,
+  durationMinutes: number,
+): Promise<SprintDto> {
   const { data } = await http.post<SprintDto>('/api/sprints/start', {
     projectId,
     durationMinutes,
