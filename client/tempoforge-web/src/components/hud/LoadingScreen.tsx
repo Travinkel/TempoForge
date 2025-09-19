@@ -23,3 +23,4 @@ export default function LoadingScreen({ slowing, fading }: Props) {
     </div>
   );
 }
+

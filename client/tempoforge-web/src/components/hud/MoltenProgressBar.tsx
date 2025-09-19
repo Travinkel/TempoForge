@@ -23,3 +23,4 @@ export default function MoltenProgressBar({ progress, label }: MoltenProgressBar
     </div>
   )
 }
+

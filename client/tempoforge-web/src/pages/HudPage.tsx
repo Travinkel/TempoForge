@@ -156,7 +156,7 @@ export default function HudPage(): JSX.Element {
           <div className="relative flex w-full max-w-5xl flex-col items-center justify-end">
             <AvatarSprite
               state={portalState}
-              className="pointer-events-none absolute -top-28 left-1/2 -translate-x-1/2 drop-shadow-[0_12px_18px_rgba(0,0,0,0.85)]"
+              className="pointer-events-none absolute bottom-32 left-1/2 -translate-x-1/2 drop-shadow-[0_12px_18px_rgba(0,0,0,0.85)]"
             />
 
             <div className="flex w-full items-end justify-between gap-6 px-6 md:px-10">
@@ -185,7 +185,7 @@ export default function HudPage(): JSX.Element {
                 onViewStats={() => {
                   void refreshMetrics(true)
                 }}
-                className="mx-auto"
+                className="w-full max-w-xl"
               />
               <ManaOrb
                 progress={remainingRatio}
@@ -219,7 +219,7 @@ export default function HudPage(): JSX.Element {
             onViewStats={() => {
               void refreshMetrics(true)
             }}
-            className="mx-auto"
+            className="w-full max-w-xl"
           />
           <div className="text-xs opacity-80 md:text-sm">Press Cancel to forfeit this sprint</div>
         </div>

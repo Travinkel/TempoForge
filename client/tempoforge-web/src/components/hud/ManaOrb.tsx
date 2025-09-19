@@ -61,3 +61,4 @@ export default function ManaOrb({ progress, pulsing = false, className = '', mir
     </div>
   )
 }
+

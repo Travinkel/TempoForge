@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 
 export type HudPanelProps = {
   side: 'left' | 'right'
@@ -30,3 +30,4 @@ export default function HudPanel({ side, className = '', children }: HudPanelPro
     </div>
   )
 }
+

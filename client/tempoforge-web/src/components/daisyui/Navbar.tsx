@@ -16,7 +16,7 @@ export default function Navbar(): JSX.Element {
               alt="TempoForge Logo"
               className="h-10 w-auto transition-all duration-200 filter drop-shadow-[0_0_4px_rgba(255,215,0,0.35)] hover:scale-105 hover:drop-shadow-[0_0_6px_rgba(255,215,0,0.55)]"
             />
-            <span className="hidden font-semibold uppercase tracking-[0.3em] sm:block">TempoForge</span>
+            <h1 className="hidden text-2xl font-bold metal-text sm:block">TempoForge</h1>
           </Link>
           <nav className="flex flex-wrap items-center gap-3">
             <ThemeToggle />

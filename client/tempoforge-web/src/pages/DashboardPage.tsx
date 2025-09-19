@@ -414,9 +414,9 @@ function DashboardPage(): JSX.Element {
 
       <div className="relative z-10 py-10">
         <div className="mx-auto max-w-7xl px-4 text-center md:text-left">
-          <h1 className="heading-gilded gold-text text-3xl md:text-4xl">
-            Forge Command Dashboard
-          </h1>
+          <h1 className="text-4xl font-bold metal-text md:text-5xl">TempoForge</h1>
+
+          <p className="mt-2 text-sm uppercase tracking-[0.35em] text-amber-200/80">Forge Command Dashboard</p>
 
           <p className="mt-3 text-sm text-amber-100/80 md:max-w-2xl">
             Track sprints, rally quests, and steward the forge with live realm

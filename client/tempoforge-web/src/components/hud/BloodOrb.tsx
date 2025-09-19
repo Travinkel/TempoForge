@@ -1,4 +1,4 @@
-﻿import React from 'react'
+import React from 'react'
 
 export type BloodOrbProps = {
   /** 0..1 progress remaining. 1 = full, 0 = empty */
@@ -48,3 +48,4 @@ export default function BloodOrb({ progress, label = '25:00', className = '', pu
     </div>
   )
 }
+

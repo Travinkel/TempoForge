@@ -68,3 +68,4 @@ export default function LifeOrb({ progress, pulsing = false, className = '', lab
     </div>
   )
 }
+

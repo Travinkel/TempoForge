@@ -36,3 +36,4 @@ export default function AvatarSprite({ state, className = "" }: AvatarSpriteProp
     </div>
   );
 }
+
