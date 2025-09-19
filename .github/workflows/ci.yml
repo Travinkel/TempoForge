@@ -1,12 +1,8 @@
-name: Build & Test (.NET + Testcontainers)
+﻿name: Build & Test (.NET + Testcontainers)
 
 on:
   push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
+    branches: main
 
 jobs:
   build-test:

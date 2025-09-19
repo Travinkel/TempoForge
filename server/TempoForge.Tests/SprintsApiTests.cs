@@ -21,11 +21,10 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Alpha");
-
         var response = await client.PostAsJsonAsync("/api/sprints/start", new { ProjectId = projectId, DurationMinutes = 25 });
-
         Assert.Equal(HttpStatusCode.Created, response.StatusCode);
         var sprint = await response.Content.ReadFromJsonAsync<SprintResponse>();
         Assert.NotNull(sprint);
@@ -39,6 +38,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Conflict Project");
 
@@ -59,6 +59,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Completion Project");
         var started = await StartSprintAsync(client, projectId, 30);
@@ -83,6 +84,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Abort Project");
         var started = await StartSprintAsync(client, projectId, 25);
@@ -105,6 +107,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var alpha = await CreateProjectAsync(client, "Alpha Project");
         var beta = await CreateProjectAsync(client, "Beta Project");
@@ -132,6 +135,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Progress Project");
 
@@ -155,6 +159,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Chronos");
 
@@ -176,6 +181,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
+        // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
 
         var explorerId = await CreateProjectAsync(client, "Explorer", isFavorite: false);
@@ -243,4 +249,8 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
 
     private sealed record ProgressResponse(string Standing, int PercentToNext, int TotalCompleted, int? NextThreshold, QuestSnapshotResponse Quest);
 }
+
+
+
+
 
