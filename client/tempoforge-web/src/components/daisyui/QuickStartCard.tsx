@@ -20,6 +20,7 @@ type QuickStartCardProps = {
   onStartSprint: (projectId: string, durationMinutes: number) => Promise<void>;
   onAddProject: (input: ProjectCreateRequest) => Promise<void>;
   onToggleFavorite: (projectId: string, nextValue: boolean) => Promise<void>;
+  className?: string;
 };
 
 const DURATION_OPTIONS: DurationOption[] = [15, 25, 45, "custom"];
@@ -37,6 +38,7 @@ export default function QuickStartCard({
   onStartSprint,
   onAddProject,
   onToggleFavorite,
+  className = "",
 }: QuickStartCardProps) {
   const [selectedProjectId, setSelectedProjectId] = React.useState<
     string | null
@@ -138,18 +140,20 @@ export default function QuickStartCard({
   const effectiveDuration =
     typeof duration === "number" ? duration : plannedDurationMinutes;
 
+  const cardClassName = ['card', 'glow-box', 'text-amber-100', 'min-h-[220px]', className].filter(Boolean).join(' ')
+
   return (
-    <div className="card bg-neutral text-neutral-content">
-      <div className="card-body">
+    <div className={cardClassName}>
+      <div className="card-body gap-6">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="card-title font-cinzel text-primary">Quick Start</h2>
-          <span className="text-xs uppercase tracking-[0.3em] opacity-60">
+          <h2 className="heading-gilded gold-text text-xl">Quick Start</h2>
+          <span className="rounded border border-amber-500/35 bg-black/40 px-3 py-1 text-xs uppercase tracking-[0.3em] text-amber-200/80">
             {effectiveDuration}m
           </span>
         </div>
 
         {error && (
-          <div className="alert alert-error text-sm">
+          <div className="rounded border border-red-500/40 bg-red-900/20 px-3 py-2 text-sm text-red-200">
             <span>{error}</span>
           </div>
         )}
@@ -174,10 +178,10 @@ export default function QuickStartCard({
                       key={project.id}
                       type="button"
                       onClick={() => handleSelectProject(project.id)}
-                      className={`rounded-full border px-3 py-1 transition-colors ${
+                      className={`rounded-full border px-4 py-1.5 text-sm transition-colors ${
                         isSelected
-                          ? "border-yellow-700 bg-yellow-500 text-black"
-                          : "border-gray-600 bg-gray-800 text-gray-200"
+                          ? "border-amber-400 bg-amber-500/80 text-black shadow-[0_0_10px_rgba(249,115,22,0.45)]"
+                          : "border-amber-500/35 bg-black/50 text-amber-100/80 hover:border-amber-400/60"
                       }`}
                     >
                       {project.name}
@@ -187,13 +191,13 @@ export default function QuickStartCard({
                 <button
                   type="button"
                   onClick={handleAddProject}
-                  className="rounded-full bg-gray-600 px-3 py-1 text-white"
+                  className="rounded-full border border-amber-500/35 bg-black/60 px-4 py-1.5 text-sm text-amber-100/80 hover:border-amber-400/60"
                 >
                   + Add
                 </button>
               </div>
               {favorites.length === 0 && (
-                <div className="mt-3 text-sm opacity-70">
+                <div className="text-xs uppercase tracking-[0.18em] text-amber-200/70">
                   Mark a project as favorite to quick-launch it.
                 </div>
               )}
@@ -210,7 +214,11 @@ export default function QuickStartCard({
                     key={value.toString()}
                     type="button"
                     onClick={() => handleDurationChange(value)}
-                    className={`btn btn-sm ${isSelected ? "btn-primary" : "btn-ghost"}`}
+                    className={`rounded border px-4 py-1.5 text-xs uppercase tracking-[0.24em] transition ${
+                      isSelected
+                        ? "border-amber-400 bg-amber-500/80 text-black shadow-[0_0_10px_rgba(249,115,22,0.45)]"
+                        : "border-amber-500/30 bg-black/40 text-amber-200/80 hover:border-amber-400/60"
+                    }`}
                   >
                     {value === "custom" ? "Custom" : `${value}m`}
                   </button>
@@ -221,13 +229,13 @@ export default function QuickStartCard({
             <div className="flex flex-col gap-2">
               <button
                 type="button"
-                className="btn btn-lg bg-red-700 text-white hover:bg-red-600"
+                className="btn border border-amber-500/40 bg-amber-500/80 px-8 text-black hover:bg-amber-400 disabled:opacity-40"
                 onClick={handleStart}
                 disabled={pending || sprintStarting || !selectedProjectId}
               >
-                {pending || sprintStarting ? "Starting�" : "Start Sprint"}
+                {pending || sprintStarting ? "Starting..." : "Start Sprint"}
               </button>
-              <span className="text-xs opacity-70">
+              <span className="text-xs uppercase tracking-[0.24em] text-amber-200/70">
                 {selectedProjectId
                   ? "Ready when you are."
                   : "Select a project to stage your next sprint."}
@@ -235,13 +243,13 @@ export default function QuickStartCard({
             </div>
 
             <div>
-              <div className="mb-1 text-sm opacity-70">All Projects</div>
+              <div className="mb-1 text-xs uppercase tracking-[0.24em] text-amber-200/70">All Projects</div>
               {allProjectsEmpty ? (
-                <div className="rounded bg-base-100/10 px-3 py-2 text-sm opacity-70">
+                <div className="rounded border border-amber-500/20 bg-black/35 px-3 py-2 text-sm text-amber-100/75">
                   Create your first project to get started.
                 </div>
               ) : (
-                <ul className="divide-y divide-base-100/25">
+                <ul className="divide-y divide-amber-500/15">
                   {projects.map((project) => {
                     const lastUsed = project.lastUsedAt
                       ? new Date(project.lastUsedAt).toLocaleString()
@@ -249,15 +257,15 @@ export default function QuickStartCard({
                     return (
                       <li
                         key={project.id}
-                        className="flex items-center justify-between py-2"
+                        className="flex items-center justify-between py-3"
                       >
                         <button
                           type="button"
-                          className={`text-left ${selectedProjectId === project.id ? "font-semibold text-yellow-200" : ""}`}
+                          className={`text-left transition ${selectedProjectId === project.id ? "font-semibold text-amber-50" : "text-amber-100/80 hover:text-amber-50"}`}
                           onClick={() => handleSelectProject(project.id)}
                         >
                           <div>{project.name}</div>
-                          <div className="text-xs opacity-60">Last used {lastUsed}</div>
+                          <div className="text-xs uppercase tracking-[0.2em] text-amber-200/60">Last used {lastUsed}</div>
                         </button>
                         <button
                           type="button"
@@ -267,8 +275,8 @@ export default function QuickStartCard({
                           <Droplet
                             className={
                               project.isFavorite
-                                ? "text-red-600"
-                                : "text-gray-500 hover:text-red-500"
+                                ? "text-amber-400 drop-shadow-[0_0_6px_rgba(249,115,22,0.45)]"
+                                : "text-amber-200/50 hover:text-amber-100/80"
                             }
                           />
                         </button>

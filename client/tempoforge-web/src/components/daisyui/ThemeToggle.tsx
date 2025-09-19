@@ -1,7 +1,13 @@
-﻿import React from "react";
+import React from "react";
 
-const THEMES = ["tempoforge", "light", "dark", "dracula"] as const;
+const THEMES = ["tempoforge", "dark", "light", "dracula", "lord-of-terror"] as const;
 type ThemeName = (typeof THEMES)[number];
+
+const formatThemeLabel = (theme: ThemeName): string =>
+  theme
+    .split('-')
+    .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+    .join(' ');
 
 const STORAGE_KEY = "tempoforge:theme";
 
@@ -44,10 +50,11 @@ export default function ThemeToggle(): JSX.Element {
       >
         {THEMES.map((option) => (
           <option key={option} value={option}>
-            {option.charAt(0).toUpperCase() + option.slice(1)}
+            {formatThemeLabel(option)}
           </option>
         ))}
       </select>
     </label>
   );
 }
+

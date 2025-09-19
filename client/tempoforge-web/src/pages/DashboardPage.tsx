@@ -103,22 +103,21 @@ const toProjectListItem = (project: ProjectDto): ProjectListItem => ({
 
 type QuestCardProps = {
   title: string
-
   items: { label: string; completed: boolean }[]
+  className?: string
 }
 
-function QuestCard({ title, items }: QuestCardProps) {
+function QuestCard({ title, items, className = '' }: QuestCardProps) {
+  const cardClassName = ['card', 'glow-box', 'text-amber-100', 'min-h-[200px]', className].filter(Boolean).join(' ')
+
   return (
-    <div className="card bg-base-200/80 text-amber-100 shadow-xl shadow-amber-900/30 ring-1 ring-amber-900/40">
+    <div className={cardClassName}>
       <div className="card-body gap-3">
         <h3 className="heading-gilded gold-text text-lg">{title}</h3>
 
         <ul className="space-y-2 text-sm">
           {items.map((item, index) => (
-            <li
-              key={`${item.label}-${index}`}
-              className="flex items-start gap-2"
-            >
+            <li key={`${item.label}-${index}`} className="flex items-start gap-2">
               <span
                 className={`mt-1 inline-flex h-3 w-3 flex-shrink-0 rounded-full ring-1 ring-amber-200/70 ${
                   item.completed
@@ -440,116 +439,229 @@ function DashboardPage(): JSX.Element {
           </div>
         )}
 
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 mx-auto max-w-7xl px-4">
-          <div className="flex flex-col gap-6">
-            <QuickStartCard
-              projects={projects}
-              favorites={favorites}
-              loading={projectsLoading || favoritesLoading}
-              error={quickStartError || actionError || favoritesError}
-              plannedProjectId={plannedProjectId}
-              plannedDurationMinutes={plannedDurationMinutes}
-              sprintStarting={actionPending || projectActionPending}
-              onPlanSprint={handlePlanSprint}
-              onStartSprint={handleStartSprint}
-              onAddProject={handleQuickAddProject}
-              onToggleFavorite={handleToggleFavorite}
-              onErrorMessage={setQuickStartError}
-            />
+        <div className="mt-8">
+
+          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
 
             <StatsCard
+
+              className="min-h-[240px]"
+
               minutes={statsCardData.minutes}
+
               sprints={statsCardData.sprints}
+
               streakDays={statsCardData.streakDays}
+
               loading={metricsLoading}
+
             />
 
-            <ProgressCard progress={progressStats} loading={metricsLoading} />
+
+
+            <QuickStartCard
+
+              className="min-h-[280px] lg:col-span-2"
+
+              projects={projects}
+
+              favorites={favorites}
+
+              loading={projectsLoading || favoritesLoading}
+
+              error={quickStartError || actionError || favoritesError}
+
+              plannedProjectId={plannedProjectId}
+
+              plannedDurationMinutes={plannedDurationMinutes}
+
+              sprintStarting={actionPending || projectActionPending}
+
+              onPlanSprint={handlePlanSprint}
+
+              onStartSprint={handleStartSprint}
+
+              onAddProject={handleQuickAddProject}
+
+              onToggleFavorite={handleToggleFavorite}
+
+              onErrorMessage={setQuickStartError}
+
+            />
+
+
+
+            <ProgressCard
+
+              className="min-h-[240px]"
+
+              progress={progressStats}
+
+              loading={metricsLoading}
+
+            />
+
+
+
+            <TimerCard
+
+              className="min-h-[240px]"
+
+              label={timerLabel}
+
+              subtitle={timerSubtitle}
+
+              active={active}
+
+              isCritical={isCritical}
+
+              canStart={canStart && !!plannedProjectId}
+
+              onStart={() => {
+
+                void startSprint()
+
+              }}
+
+              onCancel={() => {
+
+                void cancelSprint()
+
+              }}
+
+              onComplete={() => {
+
+                void completeSprint()
+
+              }}
+
+            />
+
+
 
             <FavoritesCard
+
+              className="min-h-[220px]"
+
               items={favorites.map((f) => f.name)}
+
               loading={favoritesLoading}
+
               error={favoritesError}
+
               onRetry={loadFavorites}
+
             />
+
+
 
             <RecentCard
+
+              className="min-h-[220px]"
+
               items={recentItems}
+
               loading={metricsLoading}
+
               error={metricsError}
+
               onRetry={() => refreshMetrics(true)}
-            />
-          </div>
 
-          <div className="flex flex-col gap-6">
-            <TimerCard
-              label={timerLabel}
-              subtitle={timerSubtitle}
-              active={active}
-              isCritical={isCritical}
-              canStart={canStart && !!plannedProjectId}
-              onStart={() => {
-                void startSprint()
-              }}
-              onCancel={() => {
-                void cancelSprint()
-              }}
-              onComplete={() => {
-                void completeSprint()
-              }}
             />
 
-            {actionError && (
-              <div className="alert alert-warning bg-warning/15 text-warning-content shadow shadow-amber-900/30">
-                <span>{actionError}</span>
 
-                <button
-                  type="button"
-                  className="btn btn-xs"
-                  onClick={clearActionError}
-                >
-                  Dismiss
-                </button>
-              </div>
-            )}
 
-            <QuestCard title="Daily Quests" items={questDaily} />
+            <QuestCard title="Daily Quests" items={questDaily} className="min-h-[220px]" />
 
-            <QuestCard title="Weekly Quests" items={questWeekly} />
 
-            <div className="card bg-base-200/80 text-amber-100 shadow-xl shadow-amber-900/30 ring-1 ring-amber-900/40">
-              <div className="card-body gap-2">
+
+            <QuestCard title="Weekly Quests" items={questWeekly} className="min-h-[220px]" />
+
+
+
+            <div className="card glow-box text-amber-100 min-h-[220px] lg:col-span-3">
+
+              <div className="card-body gap-3">
+
                 <h3 className="heading-gilded gold-text text-lg">Streak & Totals</h3>
 
-                <div className="grid grid-cols-3 gap-2 text-center text-sm">
-                  <div className="rounded bg-base-100/30 px-2 py-3">
-                    <div className="text-xs opacity-75">Streak</div>
 
-                    <div className="text-lg font-bold text-amber-100">
-                      {summaryStreakText}
-                    </div>
+
+                <div className="grid grid-cols-1 gap-3 text-center text-sm sm:grid-cols-3">
+
+                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
+
+                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Streak</div>
+
+                    <div className="mt-2 text-lg font-bold text-amber-100">{summaryStreakText}</div>
+
                   </div>
 
-                  <div className="rounded bg-base-100/30 px-2 py-3">
-                    <div className="text-xs opacity-75">Minutes</div>
 
-                    <div className="text-lg font-bold text-amber-100">
-                      {summaryMinutesText}
-                    </div>
+
+                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
+
+                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Minutes</div>
+
+                    <div className="mt-2 text-lg font-bold text-amber-100">{summaryMinutesText}</div>
+
                   </div>
 
-                  <div className="rounded bg-base-100/30 px-2 py-3">
-                    <div className="text-xs opacity-75">Sprints</div>
 
-                    <div className="text-lg font-bold text-amber-100">
-                      {summarySprintsText}
-                    </div>
+
+                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
+
+                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Sprints</div>
+
+                    <div className="mt-2 text-lg font-bold text-amber-100">{summarySprintsText}</div>
+
                   </div>
+
                 </div>
+
               </div>
+
             </div>
+
+
+
+            {actionError && (
+
+              <div className="card glow-box text-amber-100 min-h-[200px] md:col-span-2 lg:col-span-3">
+
+                <div className="card-body gap-4">
+
+                  <div className="flex items-start justify-between gap-3">
+
+                    <span>{actionError}</span>
+
+                    <button
+
+                      type="button"
+
+                      className="btn btn-xs border border-amber-500/40 bg-black/40 text-amber-200/80 hover:border-amber-400"
+
+                      onClick={clearActionError}
+
+                    >
+
+                      Dismiss
+
+                    </button>
+
+                  </div>
+
+                </div>
+
+              </div>
+
+            )}
+
           </div>
+
         </div>
+
+
 
         <section className="mx-auto mt-12 max-w-7xl px-4">
           <div className="flex flex-wrap items-center justify-between gap-3">

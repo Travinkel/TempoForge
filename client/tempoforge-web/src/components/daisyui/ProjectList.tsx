@@ -1,3 +1,4 @@
+
 import React from "react";
 import type { Project } from "../../api/projects";
 
@@ -29,38 +30,49 @@ export function ProjectList({
   onToggleFavorite?: (id: string, nextValue: boolean) => void;
 }) {
   if (!items?.length) {
-    return <div className="alert shadow"><span>No projects yet.</span></div>;
+    return (
+      <div className="rounded border border-amber-500/25 bg-black/35 px-4 py-3 text-sm text-amber-100/75">
+        No projects yet.
+      </div>
+    );
   }
   return (
-    <ul className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-      {items.map(p => (
-        <li key={p.id} className="card bg-base-200 shadow">
-          <div className="card-body">
-            <div className="flex items-center justify-between">
-              <h3 className="card-title">
-                {p.name}
-                {p.isFavorite && (
-                  <span className="badge badge-primary ml-2">Favorite</span>
-                )}
-              </h3>
+    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      {items.map((p) => (
+        <li key={p.id} className="card glow-box text-amber-100">
+          <div className="card-body gap-3">
+            <div className="flex items-start justify-between gap-4">
+              <h3 className="heading-gilded gold-text text-lg">{p.name}</h3>
               <div className="flex gap-2">
                 {onToggleFavorite && (
                   <button
-                    className="btn btn-xs"
+                    className="btn btn-xs border border-amber-500/40 bg-black/40 text-amber-200/80 hover:border-amber-400"
                     onClick={() => onToggleFavorite(p.id, !p.isFavorite)}
                   >
                     {p.isFavorite ? "Unfavorite" : "Favorite"}
                   </button>
                 )}
                 {onDelete && (
-                  <button className="btn btn-xs btn-error" onClick={() => onDelete(p.id)}>Delete</button>
+                  <button
+                    className="btn btn-xs border border-red-500/40 bg-red-900/40 text-red-200 hover:border-red-400"
+                    onClick={() => onDelete(p.id)}
+                  >
+                    Delete
+                  </button>
                 )}
               </div>
             </div>
-            <p className="text-sm opacity-70">
+
+            {p.isFavorite && (
+              <span className="inline-flex w-max rounded-full border border-amber-500/40 bg-black/40 px-3 py-1 text-xs uppercase tracking-[0.28em] text-amber-200/80">
+                Favorite
+              </span>
+            )}
+
+            <p className="text-xs uppercase tracking-[0.2em] text-amber-200/70">
               Created {formatTimestamp(p.createdAt, "Unknown")}
             </p>
-            <p className="text-sm opacity-70">
+            <p className="text-xs uppercase tracking-[0.2em] text-amber-200/70">
               Last used {formatTimestamp(p.lastUsedAt, "Not used yet")}
             </p>
           </div>
