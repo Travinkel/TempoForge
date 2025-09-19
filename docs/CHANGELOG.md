@@ -8,8 +8,11 @@
 - CI: Testcontainers run stable with no parallelization.
 
 ### Added
+- Added favicon and meta tags to web client.
+- Configured production CORS origin for Fly.io (ClientOrigin=https://tempoforge-web.fly.dev).
 - Health endpoint `/health` and root redirect `/ -> /swagger` in API.
 - Separate Fly.io config for frontend (`tempoforge-web`) with Nginx.
+- Integrated RPG Sound Pack effects for sprint events: forge_start, heartbeat_loop, complete_sting, cancel_fail.
 ## 1.0.1– 2025-09-19
 ### Fixed
 - Fly.io startup reliability: app binds on 0.0.0.0:8080; migrations no longer block startup; fast HTTP health checks on /health.
