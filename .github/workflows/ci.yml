@@ -22,13 +22,13 @@ jobs:
         run: dotnet restore
 
       - name: Build
-        run: dotnet build --no-restore -c Release
+        run: dotnet build TempoForge.sln --configuration Release --no-restore
 
-      - name: Test with Testcontainers
+      - name: Run tests
         env:
           DOTNET_RUNNING_IN_CONTAINER: "false"
           TESTCONTAINERS_RYUK_DISABLED: "true"
-        run: dotnet test --no-build --verbosity normal
+        run: dotnet test TempoForge.sln --no-build --verbosity normal
 
       - name: Setup Flyctl
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
