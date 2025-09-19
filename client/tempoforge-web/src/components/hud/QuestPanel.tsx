@@ -14,12 +14,12 @@ export type QuestPanelProps = {
 
 const List = ({ title, items }: { title: string; items: QuestListItem[] }) => (
   <div>
-    <div className="font-cinzel text-xs uppercase tracking-[0.3em] text-amber-200/90 mb-2">{title}</div>
+    <div className="font-cinzel text-xs uppercase tracking-[0.3em] text-base-content/70 mb-2">{title}</div>
     <ul className="space-y-1.5 text-[13px]">
       {items.map(item => (
         <li
           key={item.label}
-          className="group flex items-center gap-3 text-yellow-100/90"
+          className="group flex items-center gap-3 text-base-content/80"
         >
           <span
             className={`flex h-5 w-5 items-center justify-center rounded-full border transition-all duration-300 ${
@@ -68,6 +68,7 @@ export default function QuestPanel({ daily, weekly, className = '' }: QuestPanel
     </div>
   )
 }
+
 
 
 

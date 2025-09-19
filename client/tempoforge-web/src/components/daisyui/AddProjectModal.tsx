@@ -1,22 +1,24 @@
 import React from "react";
+import { createPortal } from "react-dom";
 import type { ProjectCreateRequest } from "../../api/projects";
 
 type AddProjectModalProps = {
-  open: boolean;
+  isOpen: boolean;
   onClose: () => void;
-  onAdd: (input: ProjectCreateRequest & { isFavorite: boolean }) => Promise<void>;
+  onSubmit: (input: ProjectCreateRequest) => Promise<void>;
 };
 
 export default function AddProjectModal({
-  open,
+  isOpen,
   onClose,
-  onAdd,
+  onSubmit,
 }: AddProjectModalProps) {
   const [name, setName] = React.useState("");
   const [isFavorite, setIsFavorite] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const titleId = React.useId();
+  const descriptionId = React.useId();
   const errorId = React.useId();
 
   const handleClose = React.useCallback(() => {
@@ -27,17 +29,33 @@ export default function AddProjectModal({
   }, [onClose, submitting]);
 
   React.useEffect(() => {
-    if (!open) {
+    if (!isOpen) {
       return;
     }
     setName("");
     setIsFavorite(false);
     setSubmitting(false);
     setError(null);
-  }, [open]);
+  }, [isOpen]);
 
   React.useEffect(() => {
-    if (!open) {
+    if (!isOpen || typeof document === "undefined") {
+      return undefined;
+    }
+
+    const { body } = document;
+    const previousOverflow = body.style.overflow;
+    body.classList.add("modal-open");
+    body.style.overflow = "hidden";
+
+    return () => {
+      body.classList.remove("modal-open");
+      body.style.overflow = previousOverflow;
+    };
+  }, [isOpen]);
+
+  React.useEffect(() => {
+    if (!isOpen) {
       return undefined;
     }
 
@@ -52,9 +70,13 @@ export default function AddProjectModal({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [handleClose, open]);
+  }, [handleClose, isOpen]);
 
-  if (!open) {
+  if (!isOpen) {
+    return null;
+  }
+
+  if (typeof document === "undefined") {
     return null;
   }
 
@@ -72,7 +94,7 @@ export default function AddProjectModal({
     setSubmitting(true);
     setError(null);
     try {
-      await onAdd({ name: trimmedName, isFavorite });
+      await onSubmit({ name: trimmedName, isFavorite });
       onClose();
     } catch (err) {
       const message =
@@ -83,18 +105,21 @@ export default function AddProjectModal({
     }
   };
 
-  return (
+  const modalContent = (
     <div
       className="modal modal-open"
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
-      aria-describedby={error ? errorId : undefined}
+      aria-describedby={error ? errorId : descriptionId}
     >
       <div className="modal-box space-y-4 bg-base-200 text-base-content">
         <h2 id={titleId} className="text-lg font-semibold">
           Add Project
         </h2>
+        <p id={descriptionId} className="text-sm text-base-content/70">
+          Give your project a name and optionally mark it as a favorite for faster access.
+        </p>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="form-control w-full">
             <span className="label-text">Project name</span>
@@ -107,7 +132,7 @@ export default function AddProjectModal({
               autoFocus
               disabled={submitting}
               aria-invalid={error ? true : undefined}
-              aria-describedby={error ? errorId : undefined}
+              aria-describedby={error ? errorId : descriptionId}
             />
           </label>
 
@@ -150,4 +175,6 @@ export default function AddProjectModal({
       <div className="modal-backdrop bg-black/40" onClick={handleClose} role="presentation" />
     </div>
   );
+
+  return createPortal(modalContent, document.body);
 }

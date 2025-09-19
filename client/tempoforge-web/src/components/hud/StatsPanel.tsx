@@ -38,28 +38,28 @@ export default function StatsPanel({
       />
       <div className="absolute inset-0 flex flex-col justify-center gap-3 px-7 py-5 text-right">
         <div>
-          <div className="font-cinzel text-xs uppercase tracking-[0.3em] text-amber-200/80">
+          <div className="font-cinzel text-xs uppercase tracking-[0.3em] text-base-content/70">
             Streak
           </div>
-          <div className="text-2xl font-cinzel text-amber-100 drop-shadow-[0_0_6px_rgba(0,0,0,0.6)]">
+          <div className="text-2xl font-cinzel text-primary drop-shadow-[0_0_6px_rgba(0,0,0,0.6)]">
             {streakText}
           </div>
         </div>
-        <div className="grid grid-cols-1 gap-2 text-[13px] text-yellow-100/85">
+        <div className="grid grid-cols-1 gap-2 text-[13px] text-base-content/80">
           <div className="flex flex-col text-right">
             <div className="flex justify-between">
-              <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
+              <span className="uppercase tracking-[0.25em] text-xs text-base-content/60">
                 Today
               </span>
               <span className="font-semibold">{minutesText}</span>
             </div>
             <div className="flex justify-between">
-              <span className="uppercase tracking-[0.25em] text-xs text-amber-200/70">
+              <span className="uppercase tracking-[0.25em] text-xs text-base-content/60">
                 Sprints
               </span>
               <span className="font-semibold">{sprintsTodayText}</span>
             </div>
-            <span className="text-[11px] uppercase tracking-[0.25em] text-amber-200/60">
+            <span className="text-[11px] uppercase tracking-[0.25em] text-base-content/50">
               Lifetime {lifetimeText}
             </span>
           </div>
@@ -68,3 +68,4 @@ export default function StatsPanel({
     </div>
   );
 }
+

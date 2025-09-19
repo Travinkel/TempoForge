@@ -141,7 +141,7 @@ export default function HudPage(): JSX.Element {
                     <div className="font-cinzel text-xs uppercase tracking-[0.4em] text-yellow-200/90">
                       Forge Standing
                     </div>
-                    <div className="gold-text mt-1 text-3xl font-semibold">{progressStats.standing}</div>
+                    <div className="mt-1 text-3xl font-semibold text-primary">{progressStats.standing}</div>
                     <div className="mt-2 text-xs text-yellow-100/80">
                       {Math.round(progressStats.percentToNext * 100)}% to next threshold
                     </div>
@@ -160,7 +160,7 @@ export default function HudPage(): JSX.Element {
 
                 {todayStats && (
                   <div className="rounded border border-yellow-500/20 bg-black/35 px-6 py-4 text-sm text-yellow-100/90 shadow-md shadow-black/50 backdrop-blur-sm md:w-[340px]">
-                    <div className="gold-text text-base font-semibold uppercase tracking-[0.3em]">
+                    <div className="text-base font-semibold uppercase tracking-[0.3em] text-primary">
                       Today&apos;s Focus
                     </div>
                     <div className="mt-3 flex justify-between">
@@ -230,7 +230,7 @@ export default function HudPage(): JSX.Element {
       {active && (
         <div className="fixed inset-0 z-30 flex flex-col items-center justify-center gap-4 bg-black/80 text-yellow-100 backdrop-blur-md">
           <AvatarSprite state={portalState} />
-          <div className="gold-text font-cinzel text-sm uppercase tracking-[0.35em]">Focus Mode Engaged</div>
+          <div className="font-cinzel text-sm uppercase tracking-[0.35em] text-primary">Focus Mode Engaged</div>
           <div className="max-w-sm text-center text-xs text-yellow-100/80 md:text-sm">
             Stay with the sprint. Use the action bar below if you need to cancel early.
           </div>
@@ -257,4 +257,5 @@ export default function HudPage(): JSX.Element {
     </div>
   )
 }
+
 

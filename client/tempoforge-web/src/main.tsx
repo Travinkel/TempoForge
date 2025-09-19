@@ -3,6 +3,7 @@ import ReactDOM from "react-dom/client";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import Dashboard, { DashboardShell } from "./pages/Dashboard";
 import Settings from "./pages/Settings";
+import WorkPage from "./pages/WorkPage";
 import LoadingScreen from "./components/hud/LoadingScreen";
 import type { Project } from "./api/projects";
 import { getProjects, addProject } from "./api/projects";
@@ -47,7 +48,7 @@ function Projects() {
 
   return (
     <DashboardShell>
-      <h1 className="gold-text mb-4 text-3xl font-bold">Projects</h1>
+      <h1 className="mb-4 text-3xl font-semibold text-base-content">Projects</h1>
       <form className="mb-4 flex flex-wrap gap-2" onSubmit={submit}>
         <input
           className="input input-bordered flex-1 min-w-[180px]"
@@ -71,7 +72,7 @@ function Projects() {
       {error && <div className="alert alert-error mb-4">{error}</div>}
       <ul className="space-y-2">
         {items.map((p) => (
-          <li key={p.id} className="card bg-neutral text-neutral-content p-3 space-y-1">
+          <li key={p.id} className="card bg-base-200/80 text-base-content border border-base-content/10 shadow-sm backdrop-blur p-3 space-y-1">
             <div className="flex items-center gap-2">
               <span className="font-semibold">{p.name}</span>
               {p.isFavorite && <span className="badge badge-primary">Favorite</span>}
@@ -89,9 +90,15 @@ function Projects() {
   );
 }
 
+const Work = () => (
+  <DashboardShell>
+    <WorkPage />
+  </DashboardShell>
+);
+
 const Focus = () => (
   <DashboardShell>
-    <div className="card bg-neutral text-neutral-content">
+    <div className="card bg-base-200/80 text-base-content border border-base-content/10 shadow-lg backdrop-blur">
       <div className="card-body">Focus timer TBD</div>
     </div>
   </DashboardShell>
@@ -99,7 +106,7 @@ const Focus = () => (
 
 const History = () => (
   <DashboardShell>
-    <div className="card bg-neutral text-neutral-content">
+    <div className="card bg-base-200/80 text-base-content border border-base-content/10 shadow-lg backdrop-blur">
       <div className="card-body">History TBD</div>
     </div>
   </DashboardShell>
@@ -109,7 +116,7 @@ const About = () => (
   <DashboardShell>
     <div className="card bg-base-100 shadow-lg">
       <div className="card-body space-y-3">
-        <h1 className="card-title gold-text text-3xl font-bold">About TempoForge</h1>
+        <h1 className="card-title text-3xl font-semibold text-base-content">About TempoForge</h1>
         <p>
           TempoForge blends productivity dashboards with game-inspired HUDs.
           Toggle your layout in the navbar or settings and we will remember the
@@ -123,6 +130,7 @@ const About = () => (
 const router = createBrowserRouter([
   { path: "/", element: <Dashboard /> },
   { path: "/projects", element: <Projects /> },
+  { path: "/work", element: <Work /> },
   { path: "/focus", element: <Focus /> },
   { path: "/history", element: <History /> },
   { path: "/settings", element: <Settings /> },
@@ -166,3 +174,12 @@ ReactDOM.createRoot(document.getElementById("root")!).render(
     <AppRoot />
   </React.StrictMode>,
 );
+
+
+
+
+
+
+
+
+

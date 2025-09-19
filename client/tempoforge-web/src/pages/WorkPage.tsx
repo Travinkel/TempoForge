@@ -1,723 +1,416 @@
-import React from 'react'
+import React from "react";
 
-import QuickStartCard from '../components/daisyui/QuickStartCard'
+import QuickStartCard from "../components/daisyui/QuickStartCard";
+import StatsCard from "../components/daisyui/StatsCard";
+import ProgressCard from "../components/daisyui/ProgressCard";
+import TimerCard from "../components/daisyui/TimerCard";
+import { useSprintContext } from "../context/SprintContext";
 
-import StatsCard from '../components/daisyui/StatsCard'
+import type { Project, ProjectCreateRequest } from "../api/projects";
+import { addProject, getFavoriteProjects, getProjects, updateProject } from "../api/projects";
+import type { ProgressStats, RecentSprint, TodayStats } from "../api/sprints";
 
-import ProgressCard from '../components/daisyui/ProgressCard'
+const STORAGE_KEY = "tempoforge:tasks";
 
-import RecentCard from '../components/daisyui/RecentCard'
-
-import FavoritesCard from '../components/daisyui/FavoritesCard'
-
-import TimerCard from '../components/daisyui/TimerCard'
-
-import {
-  ProjectForm,
-  type ProjectCreateInput,
-} from '../components/daisyui/ProjectForm'
-
-import {
-  ProjectList,
-  type Project as ProjectListItem,
-} from '../components/daisyui/ProjectList'
-
-import { useSprintContext } from '../context/SprintContext'
-
-import type {
-  Project as ProjectDto,
-  ProjectCreateRequest,
-} from '../api/projects'
-
-import {
-  getProjects,
-  getFavoriteProjects,
-  addProject,
-  updateProject,
-  deleteProject,
-} from '../api/projects'
-
-const formatRecentTimestamp = (iso: string): string => {
-  const date = new Date(iso)
-
-  if (Number.isNaN(date.getTime())) {
-    return 'Unknown'
+const createId = () => {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID();
   }
 
-  const now = new Date()
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+};
 
-  const diffMs = now.getTime() - date.getTime()
+type TaskStatus = "backlog" | "in-progress" | "done";
 
-  const diffMinutes = Math.round(diffMs / 60000)
+type Task = {
+  id: string;
+  title: string;
+  status: TaskStatus;
+  createdAt: string;
+};
 
-  if (diffMinutes < 0) {
-    return date.toLocaleString(undefined, {
-      month: 'short',
+type Column = {
+  status: TaskStatus;
+  title: string;
+  helper: string;
+};
 
-      day: 'numeric',
+const COLUMNS: Column[] = [
+  { status: "backlog", title: "Backlog", helper: "Ideas and quests waiting to enter the forge." },
+  { status: "in-progress", title: "In Progress", helper: "Active focus work you are forging right now." },
+  { status: "done", title: "Done", helper: "Completed victories ready for celebration." },
+];
 
-      hour: '2-digit',
-
-      minute: '2-digit',
-    })
+const loadStoredTasks = (): Task[] => {
+  if (typeof window === "undefined") {
+    return [];
   }
 
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m ago`
+  try {
+    const raw = window.localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      return [];
+    }
+    const parsed = JSON.parse(raw) as Task[];
+    if (!Array.isArray(parsed)) {
+      return [];
+    }
+    return parsed.filter((task) => typeof task.id === "string" && typeof task.title === "string");
+  } catch (error) {
+    console.warn("Failed to parse stored tasks", error);
+    return [];
+  }
+};
+
+const persistTasks = (tasks: Task[]): void => {
+  if (typeof window === "undefined") {
+    return;
   }
 
-  const diffHours = Math.round(diffMinutes / 60)
-
-  if (diffHours < 24) {
-    return `${diffHours}h ago`
+  try {
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (error) {
+    console.warn("Failed to persist tasks", error);
   }
+};
 
-  const diffDays = Math.round(diffHours / 24)
+const formatRecent = (recent: RecentSprint[]): { project: string; duration: string; when: string }[] =>
+  recent.map((item) => {
+    const start = new Date(item.startedAtUtc);
+    const when = Number.isNaN(start.getTime())
+      ? "Unknown time"
+      : start.toLocaleString(undefined, {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
 
-  if (diffDays === 1) {
-    return `Yesterday ${date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}`
-  }
+    return {
+      project: item.projectName,
+      duration: `${item.durationMinutes}m`,
+      when,
+    };
+  });
 
-  return date.toLocaleString(undefined, {
-    month: 'short',
+type WorkBoardProps = {
+  tasks: Task[];
+  onCreate: (title: string) => void;
+  onStatusChange: (id: string, status: TaskStatus) => void;
+  onDelete: (id: string) => void;
+};
 
-    day: 'numeric',
+function WorkBoard({ tasks, onCreate, onStatusChange, onDelete }: WorkBoardProps) {
+  const modalRef = React.useRef<HTMLDialogElement | null>(null);
+  const [title, setTitle] = React.useState("");
 
-    hour: '2-digit',
+  const openModal = () => modalRef.current?.showModal();
+  const closeModal = () => modalRef.current?.close();
 
-    minute: '2-digit',
-  })
-}
-
-const toProjectListItem = (project: ProjectDto): ProjectListItem => ({
-  id: project.id,
-
-  name: project.name,
-
-  createdAt: project.createdAt,
-
-  isFavorite: project.isFavorite,
-
-  lastUsedAt: project.lastUsedAt,
-})
-
-type QuestCardProps = {
-  title: string
-  items: { label: string; completed: boolean }[]
-  className?: string
-}
-
-function QuestCard({ title, items, className = '' }: QuestCardProps) {
-  const cardClassName = ['card', 'glow-box', 'text-amber-100', 'min-h-[200px]', className].filter(Boolean).join(' ')
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    const trimmed = title.trim();
+    if (!trimmed) {
+      return;
+    }
+    onCreate(trimmed);
+    setTitle("");
+    closeModal();
+  };
 
   return (
-    <div className={cardClassName}>
-      <div className="card-body gap-3">
-        <h3 className="heading-gilded gold-text text-lg">{title}</h3>
-
-        <ul className="space-y-2 text-sm">
-          {items.map((item, index) => (
-            <li key={`${item.label}-${index}`} className="flex items-start gap-2">
-              <span
-                className={`mt-1 inline-flex h-3 w-3 flex-shrink-0 rounded-full ring-1 ring-amber-200/70 ${
-                  item.completed
-                    ? 'bg-green-400 shadow-[0_0_6px_rgba(74,222,128,0.65)]'
-                    : 'bg-gray-500'
-                }`}
-              />
-
-              <span
-                className={
-                  item.completed
-                    ? 'line-through text-amber-200/60'
-                    : 'text-amber-100/90'
-                }
-              >
-                {item.label}
-              </span>
-            </li>
-          ))}
-        </ul>
+    <section className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h2 className="text-xl font-semibold text-base-content">Work Board</h2>
+          <p className="text-sm text-base-content/70">
+            Keep track of upcoming quests, active focus, and finished victories.
+          </p>
+        </div>
+        <button type="button" className="btn btn-primary" onClick={openModal}>
+          New Task
+        </button>
       </div>
-    </div>
-  )
+
+      <div className="grid gap-4 md:grid-cols-3">
+        {COLUMNS.map((column) => {
+          const columnTasks = tasks.filter((task) => task.status === column.status);
+          return (
+            <div key={column.status} className="space-y-4 rounded-2xl border border-base-content/10 bg-base-200/70 p-4 shadow">
+              <header className="space-y-1">
+                <h3 className="text-sm font-semibold uppercase tracking-[0.28em] text-base-content/70">
+                  {column.title}
+                </h3>
+                <p className="text-xs text-base-content/60">{column.helper}</p>
+              </header>
+
+              <div className="space-y-3">
+                {columnTasks.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-base-content/15 bg-base-100/60 px-3 py-8 text-center text-sm text-base-content/60">
+                    No tasks here yet.
+                  </div>
+                ) : (
+                  columnTasks.map((task) => (
+                    <article key={task.id} className="rounded-xl border border-base-content/10 bg-base-100/90 p-4 shadow-sm transition hover:shadow-md">
+                      <div className="flex items-start justify-between gap-3">
+                        <h4 className="font-semibold text-base-content">{task.title}</h4>
+                        <button
+                          type="button"
+                          className="btn btn-xs btn-ghost text-error"
+                          onClick={() => onDelete(task.id)}
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <div className="mt-2 text-xs text-base-content/60">Added {new Date(task.createdAt).toLocaleString()}</div>
+                      <div className="mt-3">
+                        <label className="label mb-1 justify-start gap-2 p-0 text-xs font-semibold uppercase tracking-[0.28em] text-base-content/60">
+                          <span>Status</span>
+                        </label>
+                        <select
+                          className="select select-bordered select-sm w-full"
+                          value={task.status}
+                          onChange={(event) => onStatusChange(task.id, event.target.value as TaskStatus)}
+                        >
+                          <option value="backlog">Backlog</option>
+                          <option value="in-progress">In Progress</option>
+                          <option value="done">Done</option>
+                        </select>
+                      </div>
+                    </article>
+                  ))
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <dialog ref={modalRef} className="modal modal-bottom sm:modal-middle">
+        <form method="dialog" className="modal-box space-y-4" onSubmit={handleSubmit}>
+          <h3 className="text-lg font-semibold text-base-content">Add Task</h3>
+          <p className="text-sm text-base-content/70">
+            Give the task a short, action-oriented title to keep it focused.
+          </p>
+          <input
+            className="input input-bordered w-full"
+            placeholder="Write a draft, polish the UI, review pull request..."
+            value={title}
+            onChange={(event) => setTitle(event.target.value)}
+            autoFocus
+          />
+          <div className="modal-action">
+            <button type="button" className="btn btn-ghost" onClick={closeModal}>
+              Cancel
+            </button>
+            <button type="submit" className="btn btn-primary">
+              Add Task
+            </button>
+          </div>
+        </form>
+      </dialog>
+    </section>
+  );
 }
 
-function WorkPage(): JSX.Element {
+export default function WorkPage(): JSX.Element {
   const {
     timerLabel,
-
     active,
-
-    activeSprint,
-
-    canStart,
-
-    progressStats,
-
-    todayStats,
-
-    recentSprints,
-
-    metricsLoading,
-
-    metricsError,
-
-    refreshMetrics,
-
-    questDaily,
-
-    questWeekly,
-
-    statsSummary,
-
     isCritical,
-
+    canStart,
     startSprint,
-
     cancelSprint,
-
     completeSprint,
+    progressStats,
+    todayStats,
+    recentSprints,
+    metricsLoading,
+    refreshMetrics,
+  } = useSprintContext();
 
-    plannedProjectId,
+  const [projects, setProjects] = React.useState<Project[]>([]);
+  const [favorites, setFavorites] = React.useState<Project[]>([]);
+  const [projectsLoading, setProjectsLoading] = React.useState<boolean>(false);
+  const [favoritesLoading, setFavoritesLoading] = React.useState<boolean>(false);
+  const [projectsError, setProjectsError] = React.useState<string | null>(null);
+  const [favoritesError, setFavoritesError] = React.useState<string | null>(null);
+  const [quickStartError, setQuickStartError] = React.useState<string | null>(null);
+  const [plannedProjectId, setPlannedProjectId] = React.useState<string | null>(null);
+  const [plannedDurationMinutes, setPlannedDurationMinutes] = React.useState<number>(25);
+  const [quickStartActionPending, setQuickStartActionPending] = React.useState<boolean>(false);
 
-    plannedDurationMinutes,
-
-    setPlannedSprint,
-
-    actionPending,
-
-    actionError,
-
-    clearActionError,
-  } = useSprintContext()
-
-  const [projects, setProjects] = React.useState<ProjectDto[]>([])
-
-  const [projectsLoading, setProjectsLoading] = React.useState<boolean>(true)
-
-  const [projectsError, setProjectsError] = React.useState<string | null>(null)
-
-  const [favorites, setFavorites] = React.useState<ProjectDto[]>([])
-
-  const [favoritesLoading, setFavoritesLoading] = React.useState<boolean>(true)
-
-  const [favoritesError, setFavoritesError] = React.useState<string | null>(
-    null,
-  )
-
-  const [projectSubmitting, setProjectSubmitting] =
-    React.useState<boolean>(false)
-
-  const [projectActionPending, setProjectActionPending] =
-    React.useState<boolean>(false)
-
-  const [quickStartError, setQuickStartError] = React.useState<string | null>(
-    null,
-  )
-
-  const plannedProject = React.useMemo(() => {
-    return (
-      projects.find((p) => p.id === plannedProjectId) ??
-      favorites.find((p) => p.id === plannedProjectId) ??
-      null
-    )
-  }, [projects, favorites, plannedProjectId])
-
-  const statsCardData = React.useMemo(
-    () => ({
-      minutes: todayStats?.minutesFocused ?? null,
-
-      sprints: todayStats?.sprintCount ?? null,
-
-      streakDays: todayStats?.streakDays ?? null,
-    }),
-
-    [todayStats],
-  )
-
-  const hasTodayStats = !metricsLoading && todayStats !== null
-
-  const summaryStreakText = hasTodayStats
-    ? `${statsSummary.streakDays} day${statsSummary.streakDays === 1 ? '' : 's'}`
-    : '--'
-
-  const summaryMinutesText = hasTodayStats
-    ? `${statsSummary.todayMinutes} m`
-    : '--'
-
-  const summarySprintsText = hasTodayStats
-    ? `${statsSummary.todaySprints}`
-    : '--'
-
-  const recentItems = React.useMemo(() => {
-    return recentSprints.map((item) => ({
-      project: item.projectName,
-
-      duration: `${item.durationMinutes}m`,
-
-      when: formatRecentTimestamp(item.startedAtUtc),
-    }))
-  }, [recentSprints])
-
-  const projectListItems = React.useMemo(
-    () => projects.map(toProjectListItem),
-
-    [projects],
-  )
+  const [tasks, setTasks] = React.useState<Task[]>(() => loadStoredTasks());
 
   const loadProjects = React.useCallback(async () => {
-    setProjectsLoading(true)
-
-    setProjectsError(null)
+    setProjectsLoading(true);
+    setProjectsError(null);
 
     try {
-      const data = await getProjects()
-
-      setProjects(data)
+      const data = await getProjects();
+      setProjects(data);
     } catch (error) {
-      console.error('Failed to load projects', error)
-
-      setProjectsError('Failed to load projects.')
+      console.error("Failed to load projects", error);
+      setProjectsError("Failed to load projects.");
     } finally {
-      setProjectsLoading(false)
+      setProjectsLoading(false);
     }
-  }, [])
+  }, []);
 
   const loadFavorites = React.useCallback(async () => {
-    setFavoritesLoading(true)
-
-    setFavoritesError(null)
+    setFavoritesLoading(true);
+    setFavoritesError(null);
 
     try {
-      const data = await getFavoriteProjects()
-
-      setFavorites(data)
+      const data = await getFavoriteProjects();
+      setFavorites(data);
     } catch (error) {
-      console.error('Failed to load favorite projects', error)
-
-      setFavoritesError('Failed to load favorite projects.')
+      console.error("Failed to load favorite projects", error);
+      setFavoritesError("Failed to load favorite projects.");
     } finally {
-      setFavoritesLoading(false)
+      setFavoritesLoading(false);
     }
-  }, [])
+  }, []);
 
   React.useEffect(() => {
-    void loadProjects()
+    void loadProjects();
+    void loadFavorites();
+  }, [loadFavorites, loadProjects]);
 
-    void loadFavorites()
-  }, [loadProjects, loadFavorites])
+  React.useEffect(() => {
+    persistTasks(tasks);
+  }, [tasks]);
 
-  const handlePlanSprint = React.useCallback(
-    (projectId: string | null, durationMinutes: number) => {
-      setPlannedSprint(projectId, durationMinutes)
-    },
+  React.useEffect(() => {
+    if (!plannedProjectId && favorites.length > 0) {
+      setPlannedProjectId(favorites[0].id);
+    }
+  }, [favorites, plannedProjectId]);
 
-    [setPlannedSprint],
-  )
+  const handleCreate = React.useCallback((title: string) => {
+    setTasks((current) => [
+      ...current,
+      {
+        id: createId(),
+        title,
+        status: "backlog",
+        createdAt: new Date().toISOString(),
+      },
+    ]);
+  }, []);
+
+  const handleStatusChange = React.useCallback((id: string, status: TaskStatus) => {
+    setTasks((current) => current.map((task) => (task.id === id ? { ...task, status } : task)));
+  }, []);
+
+  const handleDelete = React.useCallback((id: string) => {
+    setTasks((current) => current.filter((task) => task.id !== id));
+  }, []);
+
+  const handlePlanSprint = React.useCallback((projectId: string | null, durationMinutes: number) => {
+    setPlannedProjectId(projectId);
+    setPlannedDurationMinutes(durationMinutes);
+  }, []);
 
   const handleStartSprint = React.useCallback(
-    async (projectId: string, durationMinutes: number) => {
-      setQuickStartError(null)
+    async ({ projectId, durationMinutes }: { projectId: string; durationMinutes: number }) => {
+      if (!projectId) {
+        setQuickStartError("Select a project.");
+        return;
+      }
+
+      setQuickStartActionPending(true);
+      setQuickStartError(null);
 
       try {
-        await startSprint({ projectId, durationMinutes })
-
-        await refreshMetrics(true)
+        await startSprint({ projectId, durationMinutes });
+        await refreshMetrics(true);
+        setPlannedProjectId(projectId);
+        setPlannedDurationMinutes(durationMinutes);
       } catch (error) {
-        console.error('Failed to start sprint', error)
-
-        setQuickStartError('Failed to start sprint. Please try again.')
-
-        throw error
+        console.error("Failed to start sprint", error);
+        setQuickStartError("Failed to start sprint. Please try again.");
+        throw error;
+      } finally {
+        setQuickStartActionPending(false);
       }
     },
-
     [refreshMetrics, startSprint],
-  )
+  );
 
   const handleQuickAddProject = React.useCallback(
     async ({ name, isFavorite = false }: ProjectCreateRequest) => {
-      await addProject({ name, isFavorite })
-
-      await Promise.all([loadProjects(), loadFavorites()])
+      await addProject({ name, isFavorite });
+      await Promise.all([loadProjects(), loadFavorites()]);
     },
-
     [loadFavorites, loadProjects],
-  )
+  );
 
   const handleToggleFavorite = React.useCallback(
     async (projectId: string, nextValue: boolean) => {
-      setProjectActionPending(true)
-
       try {
-        await updateProject(projectId, { isFavorite: nextValue })
-
-        await Promise.all([loadProjects(), loadFavorites()])
-      } finally {
-        setProjectActionPending(false)
+        await updateProject(projectId, { isFavorite: nextValue });
+        await Promise.all([loadProjects(), loadFavorites()]);
+      } catch (error) {
+        console.error("Failed to update project favorite", error);
       }
     },
-
     [loadFavorites, loadProjects],
-  )
+  );
 
-  const handleProjectFormSubmit = React.useCallback(
-    async ({ name, isFavorite }: ProjectCreateInput) => {
-      setProjectSubmitting(true)
-
-      try {
-        await addProject({ name, isFavorite })
-
-        await Promise.all([loadProjects(), loadFavorites()])
-      } finally {
-        setProjectSubmitting(false)
-      }
-    },
-
-    [loadFavorites, loadProjects],
-  )
-
-  const handleDeleteProject = React.useCallback(
-    async (projectId: string) => {
-      if (!window.confirm('Delete this project?')) {
-        return
-      }
-
-      setProjectActionPending(true)
-
-      try {
-        await deleteProject(projectId)
-
-        await Promise.all([loadProjects(), loadFavorites()])
-      } finally {
-        setProjectActionPending(false)
-      }
-    },
-
-    [loadFavorites, loadProjects],
-  )
-
-  const timerSubtitle = active
-    ? activeSprint?.projectName
-      ? `Focus sprint in progress - ${activeSprint.projectName}`
-      : 'Focus sprint in progress'
-    : plannedProject
-      ? `${plannedProject.name} - ${plannedDurationMinutes}m`
-      : 'Select a project to plan your next sprint'
+  const stats: TodayStats | null = todayStats ?? null;
+  const progress: ProgressStats | null = progressStats ?? null;
+  const recent = React.useMemo(() => formatRecent(recentSprints), [recentSprints]);
+  const quickStartLoading = projectsLoading || favoritesLoading;
+  const quickStartErrorMessage = quickStartError ?? projectsError ?? favoritesError;
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-base-300/40">
-      <div className="pointer-events-none absolute inset-0 bg-[url('/assets/grain.png')] opacity-10 mix-blend-soft-light" />
-
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base-300/60 via-base-200/10 to-base-300/80" />
-
-      <div className="relative z-10 py-10">
-        <div className="mx-auto max-w-7xl px-4 text-center md:text-left">
-          <h1 className="text-4xl font-bold metal-text md:text-5xl">TempoForge</h1>
-
-          <p className="mt-2 text-sm uppercase tracking-[0.35em] text-amber-200/80">Forge Command Dashboard</p>
-
-          <p className="mt-3 text-sm text-amber-100/80 md:max-w-2xl">
-            Track sprints, rally quests, and steward the forge with live realm
-            updates.
-          </p>
-        </div>
-
-        {metricsError && (
-          <div className="mx-auto mt-6 max-w-7xl px-4">
-            <div className="alert alert-error bg-error/20 text-error-content shadow-lg shadow-red-900/30 backdrop-blur">
-              <span>{metricsError}</span>
-
-              <button
-                className="btn btn-sm"
-                onClick={() => refreshMetrics(true)}
-              >
-                Retry
-              </button>
-            </div>
-          </div>
-        )}
-
-        <div className="mt-8">
-
-          <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-
-            <StatsCard
-
-              className="min-h-[240px]"
-
-              minutes={statsCardData.minutes}
-
-              sprints={statsCardData.sprints}
-
-              streakDays={statsCardData.streakDays}
-
-              loading={metricsLoading}
-
-            />
-
-
-
-            <QuickStartCard
-
-              className="min-h-[280px] lg:col-span-2"
-
-              projects={projects}
-
-              favorites={favorites}
-
-              loading={projectsLoading || favoritesLoading}
-
-              error={quickStartError || actionError || favoritesError}
-
-              plannedProjectId={plannedProjectId}
-
-              plannedDurationMinutes={plannedDurationMinutes}
-
-              sprintStarting={actionPending || projectActionPending}
-
-              onPlanSprint={handlePlanSprint}
-
-              onStartSprint={handleStartSprint}
-
-              onAddProject={handleQuickAddProject}
-
-              onToggleFavorite={handleToggleFavorite}
-
-              onErrorMessage={setQuickStartError}
-
-            />
-
-
-
-            <ProgressCard
-
-              className="min-h-[240px]"
-
-              progress={progressStats}
-
-              loading={metricsLoading}
-
-            />
-
-
-
-            <TimerCard
-
-              className="min-h-[240px]"
-
-              label={timerLabel}
-
-              subtitle={timerSubtitle}
-
-              active={active}
-
-              isCritical={isCritical}
-
-              canStart={canStart && !!plannedProjectId}
-
-              onStart={() => {
-
-                void startSprint()
-
-              }}
-
-              onCancel={() => {
-
-                void cancelSprint()
-
-              }}
-
-              onComplete={() => {
-
-                void completeSprint()
-
-              }}
-
-            />
-
-
-
-            <FavoritesCard
-
-              className="min-h-[220px]"
-
-              items={favorites.map((f) => f.name)}
-
-              loading={favoritesLoading}
-
-              error={favoritesError}
-
-              onRetry={loadFavorites}
-
-            />
-
-
-
-            <RecentCard
-
-              className="min-h-[220px]"
-
-              items={recentItems}
-
-              loading={metricsLoading}
-
-              error={metricsError}
-
-              onRetry={() => refreshMetrics(true)}
-
-            />
-
-
-
-            <QuestCard title="Daily Quests" items={questDaily} className="min-h-[220px]" />
-
-
-
-            <QuestCard title="Weekly Quests" items={questWeekly} className="min-h-[220px]" />
-
-
-
-            <div className="card glow-box text-amber-100 min-h-[220px] lg:col-span-3">
-
-              <div className="card-body gap-3">
-
-                <h3 className="heading-gilded gold-text text-lg">Streak & Totals</h3>
-
-
-
-                <div className="grid grid-cols-1 gap-3 text-center text-sm sm:grid-cols-3">
-
-                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
-
-                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Streak</div>
-
-                    <div className="mt-2 text-lg font-bold text-amber-100">{summaryStreakText}</div>
-
-                  </div>
-
-
-
-                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
-
-                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Minutes</div>
-
-                    <div className="mt-2 text-lg font-bold text-amber-100">{summaryMinutesText}</div>
-
-                  </div>
-
-
-
-                  <div className="rounded border border-amber-500/20 bg-black/40 px-3 py-4">
-
-                    <div className="text-xs uppercase tracking-[0.24em] text-amber-200/70">Sprints</div>
-
-                    <div className="mt-2 text-lg font-bold text-amber-100">{summarySprintsText}</div>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            </div>
-
-
-
-            {actionError && (
-
-              <div className="card glow-box text-amber-100 min-h-[200px] md:col-span-2 lg:col-span-3">
-
-                <div className="card-body gap-4">
-
-                  <div className="flex items-start justify-between gap-3">
-
-                    <span>{actionError}</span>
-
-                    <button
-
-                      type="button"
-
-                      className="btn btn-xs border border-amber-500/40 bg-black/40 text-amber-200/80 hover:border-amber-400"
-
-                      onClick={clearActionError}
-
-                    >
-
-                      Dismiss
-
-                    </button>
-
-                  </div>
-
-                </div>
-
-              </div>
-
-            )}
-
-          </div>
-
-        </div>
-
-
-
-        <section className="mx-auto mt-12 max-w-7xl px-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="heading-gilded gold-text text-2xl">Project Management</h2>
-
-            {projectActionPending && (
-              <span className="text-sm text-amber-100/80">Updating...</span>
-            )}
-          </div>
-
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <ProjectForm
-              onSubmit={handleProjectFormSubmit}
-              submitting={projectSubmitting}
-            />
-
-            <div className="card bg-base-200/80 text-amber-100 shadow-xl shadow-amber-900/30 ring-1 ring-amber-900/40">
-              <div className="card-body gap-3">
-                {projectsError && (
-                  <div className="alert alert-warning bg-warning/15 text-warning-content">
-                    <span>{projectsError}</span>
-
-                    <button
-                      type="button"
-                      className="btn btn-xs"
-                      onClick={loadProjects}
-                    >
-                      Retry
-                    </button>
-                  </div>
-                )}
-
-                {projectsLoading ? (
-                  <div className="space-y-2">
-                    {[0, 1, 2].map((index) => (
-                      <div
-                        key={index}
-                        className="h-16 animate-pulse rounded bg-base-100/20"
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <ProjectList
-                    items={projectListItems}
-                    onDelete={handleDeleteProject}
-                    onToggleFavorite={handleToggleFavorite}
-                  />
-                )}
-              </div>
-            </div>
-          </div>
-        </section>
-      </div>
+    <div className="space-y-10">
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+        <StatsCard
+          className="h-full"
+          minutes={stats?.minutesFocused ?? null}
+          sprints={stats?.sprintCount ?? null}
+          streakDays={stats?.streakDays ?? null}
+          loading={metricsLoading}
+        />
+        <TimerCard
+          label={timerLabel}
+          subtitle={active ? "Sprint in progress" : "Ready when you are"}
+          active={active}
+          isCritical={isCritical}
+          canStart={canStart}
+          onStart={startSprint}
+          onCancel={cancelSprint}
+          onComplete={completeSprint}
+        />
+      </section>
+
+      <section className="grid gap-4 lg:grid-cols-2">
+        <ProgressCard progress={progress} loading={metricsLoading} />
+        <QuickStartCard
+          projects={projects}
+          favorites={favorites}
+          loading={quickStartLoading}
+          error={quickStartErrorMessage}
+          onErrorMessage={setQuickStartError}
+          plannedProjectId={plannedProjectId}
+          plannedDurationMinutes={plannedDurationMinutes}
+          sprintStarting={quickStartActionPending}
+          onPlanSprint={handlePlanSprint}
+          onStartSprint={handleStartSprint}
+          onAddProject={handleQuickAddProject}
+          onToggleFavorite={handleToggleFavorite}
+          recent={recent}
+        />
+      </section>
+
+      <WorkBoard
+        tasks={tasks}
+        onCreate={handleCreate}
+        onStatusChange={handleStatusChange}
+        onDelete={handleDelete}
+      />
     </div>
-  )
+  );
 }
-
-export default WorkPage
-

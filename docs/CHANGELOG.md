@@ -2,6 +2,8 @@
 
 ## 1.1.0– 2025-09-19
 ### Fixed
+- Fixed QuickStartCard modal trigger for adding projects (Quick Start + Add now opens the modal reliably).
+- Fixed sprint start handler to correctly post projectId and duration to API and reset the sprint timer state after success.
 - Agentic Prompt — TempoForge Frontend (Fix API base, missing assets, HUD polish)
 - API: ensured Kestrel binds to 0.0.0.0:8080, migrations no longer block startup.
 - Web: fixed build error (`canShowLayoutToggle` → `showLayoutToggle`).
@@ -162,3 +164,9 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 
 
 
+### Changed
+- Harmonized DaisyUI themes with distinct palettes and explicit `--b1` backgrounds across modes.
+- Blended the global grain texture with theme base colors for softer, readable backgrounds.
+- Restored navbar Work link and unified button styles, theme toggle, and immersive mode control.
+- Reworked the Work page with stats+timer panels, a Kanban-style task board, and a simplified Quick Start card.
+- Limited gilded typography to brand headings and converted cards/buttons to theme-native colors.
