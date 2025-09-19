@@ -2,10 +2,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Containers;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using TempoForge.Infrastructure.Data;
+using Testcontainers.PostgreSql;
 using Xunit;
 
 namespace TempoForge.Tests.Infrastructure;
@@ -21,17 +20,41 @@ public sealed class ApiTestFixture : IAsyncLifetime
     private static readonly string DefaultSkipReason = "Docker is required to run TempoForge integration tests.";
 
     private readonly SemaphoreSlim _resetSemaphore = new(1, 1);
+    private readonly PostgreSqlBuilder _builder;
 
-    private IContainer? _postgresContainer;
+    private PostgreSqlContainer? _dbContainer;
     private TempoForgeApiFactory? _factory;
-    private NpgsqlDataSource? _dataSource;
     private bool _dockerAvailable;
     private string _skipReason = DefaultSkipReason;
+    private string? _connectionString;
+
+    public ApiTestFixture()
+    {
+        _builder = new PostgreSqlBuilder()
+            .WithImage(ImageName)
+            .WithDatabase(DatabaseName)
+            .WithUsername(Username)
+            .WithPassword(Password)
+            .WithWaitStrategy(Wait.ForUnixContainer()
+                .UntilCommandIsCompleted($"pg_isready -U {Username} -d {DatabaseName}"));
+    }
 
     public bool DockerAvailable => _dockerAvailable;
 
     public string SkipReason => _skipReason;
 
+    private string ConnectionString
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(_connectionString))
+            {
+                throw new InvalidOperationException(_skipReason);
+            }
+
+            return _connectionString;
+        }
+    }
 
     public HttpClient CreateClient()
     {
@@ -45,13 +68,8 @@ public sealed class ApiTestFixture : IAsyncLifetime
 
     public TempoForgeDbContext CreateDbContext()
     {
-        if (_dataSource is null)
-        {
-            throw new InvalidOperationException(_skipReason);
-        }
-
         var options = new DbContextOptionsBuilder<TempoForgeDbContext>()
-            .UseNpgsql(_dataSource)
+            .UseNpgsql(ConnectionString)
             .Options;
 
         return new TempoForgeDbContext(options);
@@ -98,43 +116,20 @@ public sealed class ApiTestFixture : IAsyncLifetime
     {
         try
         {
-            _postgresContainer = new ContainerBuilder()
-                .WithImage(ImageName)
-                .WithName($"tempoforge-tests-{Guid.NewGuid():N}")
-                .WithCleanUp(true)
-                .WithEnvironment("POSTGRES_DB", DatabaseName)
-                .WithEnvironment("POSTGRES_USER", Username)
-                .WithEnvironment("POSTGRES_PASSWORD", Password)
-                .WithPortBinding(PostgresPort, assignRandomHostPort: true)
-                .WithWaitStrategy(Wait.ForUnixContainer()
-                    .UntilCommandIsCompleted($"pg_isready -U {Username} -d {DatabaseName}"))
-                .Build();
+            _dbContainer = _builder.Build();
+            await _dbContainer.StartAsync();
 
-            await _postgresContainer.StartAsync();
-
-            var connectionString = new NpgsqlConnectionStringBuilder
-            {
-                Host = _postgresContainer.Hostname,
-                Port = _postgresContainer.GetMappedPublicPort(PostgresPort),
-                Database = DatabaseName,
-                Username = Username,
-                Password = Password,
-                SslMode = SslMode.Disable
-            }.ConnectionString;
-
-            _dataSource = new NpgsqlDataSourceBuilder(connectionString).Build();
+            _connectionString = _dbContainer.GetConnectionString();
 
             var options = new DbContextOptionsBuilder<TempoForgeDbContext>()
-                .UseNpgsql(_dataSource)
+                .UseNpgsql(ConnectionString)
                 .Options;
 
-            await using (var context = new TempoForgeDbContext(options))
-            {
-                await context.Database.MigrateAsync();
-                await TempoForgeSeeder.SeedAsync(context);
-            }
+            using var ctx = new TempoForgeDbContext(options);
+            await ctx.Database.MigrateAsync();
+            await TempoForgeSeeder.SeedAsync(ctx);
 
-            _factory = new TempoForgeApiFactory(connectionString);
+            _factory = new TempoForgeApiFactory(ConnectionString);
             _dockerAvailable = true;
             _skipReason = string.Empty;
         }
@@ -149,14 +144,9 @@ public sealed class ApiTestFixture : IAsyncLifetime
     {
         _factory?.Dispose();
 
-        if (_dataSource is not null)
+        if (_dbContainer is not null)
         {
-            await _dataSource.DisposeAsync();
-        }
-
-        if (_postgresContainer is not null)
-        {
-            await _postgresContainer.DisposeAsync();
+            await _dbContainer.DisposeAsync();
         }
 
         _resetSemaphore.Dispose();
