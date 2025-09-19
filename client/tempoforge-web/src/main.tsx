@@ -46,7 +46,7 @@ function Projects() {
 
   return (
     <DashboardShell>
-      <h1 className="mb-4 text-2xl font-bold">Projects</h1>
+      <h1 className="gold-text mb-4 text-3xl font-bold">Projects</h1>
       <form className="mb-4 flex flex-wrap gap-2" onSubmit={submit}>
         <input
           className="input input-bordered flex-1 min-w-[180px]"
@@ -108,7 +108,7 @@ const About = () => (
   <DashboardShell>
     <div className="card bg-base-100 shadow-lg">
       <div className="card-body space-y-3">
-        <h1 className="card-title text-3xl font-semibold">About TempoForge</h1>
+        <h1 className="card-title gold-text text-3xl font-bold">About TempoForge</h1>
         <p>
           TempoForge blends productivity dashboards with game-inspired HUDs.
           Toggle your layout in the navbar or settings and we will remember the

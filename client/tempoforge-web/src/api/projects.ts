@@ -1,8 +1,8 @@
 import axios from 'axios'
-import { API_BASE_URL } from '../config/env'
+import { API_BASE } from '../config'
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: API_BASE,
 })
 
 export interface Project {

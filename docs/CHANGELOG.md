@@ -2,6 +2,7 @@
 
 ## 1.1.0– 2025-09-19
 ### Fixed
+- Agentic Prompt — TempoForge Frontend (Fix API base, missing assets, HUD polish)
 - API: ensured Kestrel binds to 0.0.0.0:8080, migrations no longer block startup.
 - Web: fixed build error (`canShowLayoutToggle` → `showLayoutToggle`).
 - CI: Testcontainers run stable with no parallelization.

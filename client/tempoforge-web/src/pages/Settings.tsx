@@ -5,7 +5,7 @@ export default function Settings() {
     <div className="min-h-screen bg-base-200 text-base-content">
       <Navbar />
       <main className="container mx-auto max-w-3xl px-4 py-6 space-y-6">
-        <h1 className="text-3xl font-semibold">Settings</h1>
+        <h1 className="gold-text text-3xl font-bold">Settings</h1>
         <div className="card bg-base-100 shadow-lg">
           <div className="card-body space-y-3">
             <p className="opacity-70">

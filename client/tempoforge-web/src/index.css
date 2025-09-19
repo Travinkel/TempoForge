@@ -5,20 +5,43 @@
 @tailwind utilities;
 
 :root { --inter: 'Inter', ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, 'Apple Color Emoji', 'Segoe UI Emoji'; }
-body { font-family: var(--inter); }
+body { font-family: var(--inter); background-color: #050302; background-image: radial-gradient(circle at top, rgba(60, 29, 10, 0.35), rgba(5, 3, 2, 0.95)); color: #fbe8c8; min-height: 100vh; }
 .font-cinzel { font-family: 'Cinzel', serif; }
 
 @layer components {
   .heading-gilded {
     font-family: 'Cinzel', serif;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.18em;
     text-transform: uppercase;
-    color: #f5d77b;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.85), 0 0 12px rgba(212, 175, 55, 0.55), 0 0 24px rgba(255, 215, 0, 0.35);
+    color: #f6e6b4;
+    text-shadow:
+      0 2px 6px rgba(0, 0, 0, 0.9),
+      0 0 14px rgba(249, 115, 22, 0.4),
+      0 0 26px rgba(250, 204, 21, 0.45),
+      1px 0 2px rgba(0, 0, 0, 0.95),
+      -1px 0 2px rgba(0, 0, 0, 0.95);
   }
   .gold-text {
     color: #FFD700;
     text-shadow: 1px 1px 2px #000, -1px -1px 2px #000;
+  }
+
+  .glow-box {
+    position: relative;
+    background: linear-gradient(180deg, rgba(39, 22, 12, 0.92) 0%, rgba(12, 6, 3, 0.96) 100%);
+    border-radius: 18px;
+    border: 1px solid rgba(249, 115, 22, 0.32);
+    box-shadow: 0 0 22px rgba(249, 115, 22, 0.32), inset 0 0 14px rgba(0, 0, 0, 0.55);
+    overflow: hidden;
+  }
+  .glow-box::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow: 0 0 36px rgba(249, 115, 22, 0.45);
+    opacity: 0.75;
   }
 }
 
@@ -204,4 +227,5 @@ body { font-family: var(--inter); }
 .icon.icon-eye {
   background-position: -96px -128px;
 }
+
 
