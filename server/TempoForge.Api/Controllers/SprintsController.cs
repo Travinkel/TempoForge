@@ -115,16 +115,10 @@ public class SprintsController : ControllerBase
     /// </summary>
     [HttpGet("running")]
     [ProducesResponseType(typeof(SprintDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<SprintDto>> GetRunning(CancellationToken ct)
+    public async Task<ActionResult<SprintDto?>> GetRunning(CancellationToken ct)
     {
         var sprint = await _service.GetRunningAsync(ct);
-        if (sprint is null)
-        {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", "No sprint is currently running."));
-        }
-
-        return Ok(SprintDto.From(sprint));
+        return Ok(sprint is null ? null : SprintDto.From(sprint));
     }
 
     /// <summary>

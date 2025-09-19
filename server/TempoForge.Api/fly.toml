@@ -2,7 +2,7 @@ app = 'tempoforge-api'
 primary_region = 'cdg'
 
 [build]
-  dockerfile = "server/TempoForge.Api/Dockerfile"
+  dockerfile = "Dockerfile"
 
 [http_service]
   internal_port = 8080
