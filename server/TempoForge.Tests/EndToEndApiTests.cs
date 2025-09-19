@@ -7,8 +7,7 @@ using Xunit;
 
 namespace TempoForge.Tests;
 
-[Collection(ApiTestCollection.Name)]
-public class EndToEndApiTests
+public class EndToEndApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
 
@@ -91,3 +90,4 @@ public class EndToEndApiTests
 
     private sealed record QuestSnapshot(int dailyGoal, int dailyCompleted, int weeklyGoal, int weeklyCompleted, int epicGoal, int epicCompleted);
 }
+

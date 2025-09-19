@@ -11,8 +11,7 @@ using Xunit;
 
 namespace TempoForge.Tests;
 
-[Collection(ApiTestCollection.Name)]
-public class QuestsApiTests
+public class QuestsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
     private readonly bool _dockerAvailable;
@@ -272,3 +271,4 @@ public class QuestsApiTests
 
     private sealed record ActiveQuestsResponse(QuestDetailResponse? Daily, QuestDetailResponse? Weekly, QuestDetailResponse? Epic);
 }
+

@@ -7,8 +7,7 @@ using Xunit;
 
 namespace TempoForge.Tests;
 
-[Collection(ApiTestCollection.Name)]
-public class StatsApiTests
+public class StatsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
 
@@ -105,4 +104,5 @@ public class StatsApiTests
 
     private sealed record RecentSprintResponse(Guid id, string projectName, int durationMinutes, DateTime startedAtUtc, SprintStatus status);
 }
+
 

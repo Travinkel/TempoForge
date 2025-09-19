@@ -10,8 +10,7 @@ using Xunit;
 
 namespace TempoForge.Tests;
 
-[Collection(ApiTestCollection.Name)]
-public class SprintsApiTests
+public class SprintsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
     private readonly bool _dockerAvailable;
@@ -263,3 +262,4 @@ public class SprintsApiTests
 
     private sealed record ProgressResponse(string Standing, int PercentToNext, int TotalCompleted, int? NextThreshold, QuestSnapshotResponse Quest);
 }
+
