@@ -1,5 +1,7 @@
 import React from "react";
 import { Droplet } from "lucide-react";
+import AddProjectModal from "./AddProjectModal";
+import CustomDurationModal from "./CustomDurationModal";
 import type {
   Project,
   ProjectCreateRequest,
@@ -47,6 +49,8 @@ export default function QuickStartCard({
     plannedDurationMinutes,
   );
   const [pending, setPending] = React.useState(false);
+  const [addProjectModalOpen, setAddProjectModalOpen] = React.useState(false);
+  const [customDurationModalOpen, setCustomDurationModalOpen] = React.useState(false);
 
   React.useEffect(() => {
     setSelectedProjectId(plannedProjectId);
@@ -77,38 +81,45 @@ export default function QuickStartCard({
   const handleDurationChange = React.useCallback(
     (option: DurationOption) => {
       if (option === "custom") {
-        const input = window.prompt(
-          "Custom duration (minutes)",
-          String(plannedDurationMinutes),
-        );
-        if (!input) {
-          return;
-        }
-        const parsed = Number.parseInt(input, 10);
-        if (!Number.isFinite(parsed) || parsed <= 0) {
-          window.alert("Enter a positive number of minutes.");
-          return;
-        }
-        const minutes = Math.min(Math.max(parsed, 1), 180);
-        setDuration(minutes);
-        announcePlan(selectedProjectId, minutes);
+        setCustomDurationModalOpen(true);
         return;
       }
       setDuration(option);
       announcePlan(selectedProjectId, option);
       onErrorMessage?.(null);
     },
-    [announcePlan, onErrorMessage, plannedDurationMinutes, selectedProjectId],
+    [announcePlan, onErrorMessage, selectedProjectId],
   );
 
-  const handleAddProject = React.useCallback(async () => {
-    const name = window.prompt("Project name")?.trim();
-    if (!name) {
-      return;
-    }
-    const favorite = window.confirm("Mark as favorite?");
-    await onAddProject({ name, isFavorite: favorite });
-  }, [onAddProject]);
+  const handleCustomDurationConfirm = React.useCallback(
+    (minutes: number) => {
+      setDuration(minutes);
+      announcePlan(selectedProjectId, minutes);
+      onErrorMessage?.(null);
+    },
+    [announcePlan, onErrorMessage, selectedProjectId],
+  );
+
+  const handleAddProject = React.useCallback(() => {
+    setAddProjectModalOpen(true);
+    onErrorMessage?.(null);
+  }, [onErrorMessage]);
+
+  const handleAddProjectClose = React.useCallback(() => {
+    setAddProjectModalOpen(false);
+  }, []);
+
+  const handleCustomDurationClose = React.useCallback(() => {
+    setCustomDurationModalOpen(false);
+  }, []);
+
+  const handleAddProjectSubmit = React.useCallback(
+    async (input: ProjectCreateRequest) => {
+      await onAddProject(input);
+      onErrorMessage?.(null);
+    },
+    [onAddProject, onErrorMessage],
+  );
 
   const handleToggleFavorite = React.useCallback(
     async (project: Project) => {
@@ -140,11 +151,12 @@ export default function QuickStartCard({
   const effectiveDuration =
     typeof duration === "number" ? duration : plannedDurationMinutes;
 
-  const cardClassName = ['card', 'glow-box', 'text-amber-100', 'min-h-[220px]', className].filter(Boolean).join(' ')
+  const cardClassName = ['card', 'glow-box', 'text-amber-100', 'min-h-[220px]', className].filter(Boolean).join(' ');
 
   return (
-    <div className={cardClassName}>
-      <div className="card-body gap-6">
+    <>
+      <div className={cardClassName}>
+        <div className="card-body gap-6">
         <div className="flex items-start justify-between gap-3">
           <h2 className="heading-gilded gold-text text-xl">Quick Start</h2>
           <span className="rounded border border-amber-500/35 bg-black/40 px-3 py-1 text-xs uppercase tracking-[0.3em] text-amber-200/80">
@@ -290,6 +302,18 @@ export default function QuickStartCard({
         )}
       </div>
     </div>
+      <AddProjectModal
+        open={addProjectModalOpen}
+        onClose={handleAddProjectClose}
+        onAdd={handleAddProjectSubmit}
+      />
+      <CustomDurationModal
+        open={customDurationModalOpen}
+        initialMinutes={effectiveDuration}
+        onClose={handleCustomDurationClose}
+        onConfirm={handleCustomDurationConfirm}
+      />
+    </>
   );
 }
 
