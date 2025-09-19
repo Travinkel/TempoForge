@@ -13,20 +13,12 @@ namespace TempoForge.Tests;
 public class SprintsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
-    private readonly bool _dockerAvailable;
-    private readonly string _skipReason;
-
-    public SprintsApiTests(ApiTestFixture fixture)
-    {
-        _fixture = fixture;
-        _dockerAvailable = fixture.DockerAvailable;
-        _skipReason = fixture.SkipReason;
-    }
+    public SprintsApiTests(ApiTestFixture fixture) => _fixture = fixture;
 
     [Fact]
     public async Task StartSprint_ReturnsCreated()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -44,7 +36,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartSprint_WhenRunning_ReturnsConflict()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -64,7 +56,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task CompleteSprint_UpdatesStatusAndStats()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -88,7 +80,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task AbortSprint_DoesNotAffectStats()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -110,7 +102,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task RecentSprints_ReturnsMostRecentEntries()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -137,7 +129,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task Progress_ReturnsSilverStandingWithPercent()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -160,7 +152,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartingSprint_UpdatesProjectLastUsed()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -181,7 +173,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ToggleFavoritesEndpoint_ReflectsUpdatedFlag()
     {
-        if (ShouldSkip()) return;
+        if (!_fixture.DockerAvailable) return;
 
         await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
@@ -236,17 +228,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
 
     private static Task<HttpResponseMessage> PostWithoutBodyAsync(HttpClient client, string requestUri)
         => client.SendAsync(new HttpRequestMessage(HttpMethod.Post, requestUri));
-
-    private bool ShouldSkip()
-    {
-        if (_dockerAvailable)
-        {
-            return false;
-        }
-
-        Console.WriteLine($"Skipping test because Docker is unavailable: {_skipReason}.");
-        return true;
-    }
 
     private sealed record ProjectDetailsResponse(Guid Id, string Name, bool IsFavorite, DateTime CreatedAt, DateTime? LastUsedAt);
     private sealed record ProjectResponse(Guid Id, string Name);
