@@ -1,9 +1,6 @@
 app = "tempoforge-web"
 primary_region = "cdg"
 
-[build]
-  dockerfile = "Dockerfile"
-
 [env]
   VITE_API_BASE_URL = "https://tempoforge-api.fly.dev"
 
