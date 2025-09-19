@@ -1,4 +1,4 @@
-
+﻿
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Inter:wght@400;600&display=swap');
 
 @tailwind base;
@@ -12,13 +12,12 @@
 body {
   font-family: var(--inter);
   min-height: 100vh;
-  background-color: var(--b1); /* DaisyUI background base */
-  background-image:
-    linear-gradient(var(--grain-overlay, rgba(12, 12, 12, 0.18)), var(--grain-overlay, rgba(12, 12, 12, 0.18))),
-    url('/assets/grain.png');
-  background-repeat: no-repeat, repeat;
-  background-size: cover, 280px 280px;
-  background-blend-mode: multiply, soft-light;
+  background:
+    url('/assets/grain.png') repeat,
+    var(--b1);
+  background-size: 200px 200px, auto;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
   color: hsl(var(--bc, 40 20% 92%));
   transition: background-color 0.25s ease, background-image 0.4s ease, color 0.2s ease;
 }
@@ -45,8 +44,17 @@ body {
     text-shadow: 1px 1px 3px #000;
   }
   .card.glow-box > .card-body {
-    padding: 1.5rem;
-  }
+  font-family: var(--inter);
+  min-height: 100vh;
+  background:
+    url('/assets/grain.png') repeat,
+    var(--b1);
+  background-size: 200px 200px, auto;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  color: hsl(var(--bc, 40 20% 92%));
+  transition: background-color 0.25s ease, background-image 0.4s ease, color 0.2s ease;
+}
 }
 
 
@@ -236,22 +244,22 @@ body {
 
 @layer base {
   body {
-    font-family: var(--inter);
-    min-height: 100vh;
-    background-color: var(--b1); /* DaisyUI background base */
-    background-image:
-      linear-gradient(var(--grain-overlay, rgba(12, 12, 12, 0.18)), var(--grain-overlay, rgba(12, 12, 12, 0.18))),
-      url('/assets/grain.png');
-    background-repeat: no-repeat, repeat;
-    background-size: cover, 280px 280px;
-    background-blend-mode: multiply, soft-light;
-    color: hsl(var(--bc, 40 20% 92%));
-    transition: background-color 0.25s ease, background-image 0.4s ease, color 0.2s ease;
-  }
+  font-family: var(--inter);
+  min-height: 100vh;
+  background:
+    url('/assets/grain.png') repeat,
+    var(--b1);
+  background-size: 200px 200px, auto;
+  background-blend-mode: overlay;
+  background-attachment: fixed;
+  color: hsl(var(--bc, 40 20% 92%));
+  transition: background-color 0.25s ease, background-image 0.4s ease, color 0.2s ease;
+}
 }
 
 @layer components {
 }
+
 
 
 
