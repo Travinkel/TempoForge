@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using DotNet.Testcontainers.Builders;
+using Npgsql;
 using Microsoft.EntityFrameworkCore;
 using TempoForge.Infrastructure.Data;
 using Testcontainers.PostgreSql;
@@ -85,24 +86,15 @@ public sealed class ApiTestFixture : IAsyncLifetime
         await _resetSemaphore.WaitAsync();
         try
         {
-            await using var context = CreateDbContext();
-            await context.Database.ExecuteSqlRawAsync("""
-                DO $$
-                DECLARE
-                    rec RECORD;
-                BEGIN
-                    FOR rec IN
-                        SELECT tablename
-                        FROM pg_tables
-                        WHERE schemaname = 'public' AND tablename <> '__EFMigrationsHistory'
-                    LOOP
-                        EXECUTE format('TRUNCATE TABLE %I.%I RESTART IDENTITY CASCADE', 'public', rec.tablename);
-                    END LOOP;
-                END $$;
-                """);
+            await using var connection = new NpgsqlConnection(ConnectionString);
+            await connection.OpenAsync();
+            await using var command = connection.CreateCommand();
+            command.CommandText = "TRUNCATE TABLE \"Projects\", \"Sprints\", \"Quests\" RESTART IDENTITY CASCADE;";
+            await command.ExecuteNonQueryAsync();
 
             if (reseed)
             {
+                await using var context = CreateDbContext();
                 await TempoForgeSeeder.SeedAsync(context);
             }
         }
@@ -140,16 +132,17 @@ public sealed class ApiTestFixture : IAsyncLifetime
         }
     }
 
-    public async Task DisposeAsync()
+    public async Task DisposeAsync() => await DisposeAsyncCore();
+
+    private async ValueTask DisposeAsyncCore()
     {
         _factory?.Dispose();
+        _resetSemaphore.Dispose();
 
         if (_dbContainer is not null)
         {
             await _dbContainer.DisposeAsync();
         }
-
-        _resetSemaphore.Dispose();
     }
 
     private static bool IsDockerUnavailable(Exception ex)
