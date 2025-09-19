@@ -1,5 +1,14 @@
 ﻿# Changelog
 
+## 1.1.0– 2025-09-19
+### Fixed
+- API: ensured Kestrel binds to 0.0.0.0:8080, migrations no longer block startup.
+- Web: fixed build error (`canShowLayoutToggle` → `showLayoutToggle`).
+- CI: Testcontainers run stable with no parallelization.
+
+### Added
+- Health endpoint `/health` and root redirect `/ -> /swagger` in API.
+- Separate Fly.io config for frontend (`tempoforge-web`) with Nginx.
 ## 1.0.1– 2025-09-19
 ### Fixed
 - Fly.io startup reliability: app binds on 0.0.0.0:8080; migrations no longer block startup; fast HTTP health checks on /health.
@@ -141,6 +150,9 @@ Following [Conventional Commits](https://www.conventionalcommits.org).
 - Removed root-level `bin/` and `obj` build artifacts.
 
 ---
+
+
+
 
 
 
