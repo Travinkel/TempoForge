@@ -1,4 +1,4 @@
-﻿import React from 'react'
+﻿import React from 'react'\r\nimport forgeStart from '/assets/sfx/forge_start.mp3';\r\nimport heartbeatLoop from '/assets/sfx/heartbeat_loop.mp3';\r\nimport completeSting from '/assets/sfx/complete_sting.mp3';\r\nimport cancelFail from '/assets/sfx/cancel_fail.mp3';
 
 type Control = {
   playStart: () => void
@@ -19,11 +19,11 @@ export function useSprintSounds(): Control {
   const cancelRef = React.useRef<HTMLAudioElement | null>(null)
 
   React.useEffect(() => {
-    startRef.current = new Audio('/assets/sfx/forge_start.mp3')
-    heartbeatRef.current = new Audio('/assets/sfx/heartbeat_loop.mp3')
+    startRef.current = new Audio(forgeStart)
+    heartbeatRef.current = new Audio(heartbeatLoop)
     if (heartbeatRef.current) heartbeatRef.current.loop = true
-    completeRef.current = new Audio('/assets/sfx/complete_sting.mp3')
-    cancelRef.current = new Audio('/assets/sfx/cancel_fail.mp3')
+    completeRef.current = new Audio(completeSting)
+    cancelRef.current = new Audio(cancelFail)
     return () => {
       heartbeatRef.current?.pause()
     }
@@ -50,3 +50,4 @@ export function useSprintSounds(): Control {
     playCancel: () => safePlay(cancelRef.current),
   }
 }
+

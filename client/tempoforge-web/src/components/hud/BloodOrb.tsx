@@ -17,7 +17,9 @@ export type BloodOrbProps = {
 export default function BloodOrb({ progress, label = '25:00', className = '', pulsing }: BloodOrbProps) {
   const pct = Math.max(0, Math.min(1, progress))
   return (
-    <div className={`relative w-[160px] h-[160px] select-none ${className}`}>
+    <div
+      className={`relative aspect-square w-[20vw] min-w-[12vh] max-w-[24vh] select-none ${className}`}
+    >
       {/* Liquid container (masked circle) */}
       <div className={`absolute inset-0 rounded-full overflow-hidden ${pulsing ? 'orb-glow' : ''}`}>
         {/* Fill height based on progress; transitions smooth */}

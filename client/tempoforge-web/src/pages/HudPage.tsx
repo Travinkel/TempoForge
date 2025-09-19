@@ -40,11 +40,30 @@ export default function HudPage(): JSX.Element {
   } = useSprintContext()
 
   const { setLayout } = useUserSettings()
-  const showLayoutToggle = allowLayoutToggle && typeof setLayout === 'function'
+  const canExitHud = typeof setLayout === 'function'
+  const showLayoutToggle = allowLayoutToggle && canExitHud
 
-  const handleReturnToDashboard = React.useCallback(() => {
-    setLayout('daisyui')
+  const handleExitHud = React.useCallback(() => {
+    if (typeof setLayout === 'function') {
+      setLayout('daisyui')
+    }
   }, [setLayout])
+
+  React.useEffect(() => {
+    if (!canExitHud) {
+      return
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        handleExitHud()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [canExitHud, handleExitHud])
 
   const actionBarProgress = active ? completedRatio : percentToNext
 
@@ -68,15 +87,26 @@ export default function HudPage(): JSX.Element {
       />
 
       <div className="relative z-10 flex h-full w-full flex-col">
-        {showLayoutToggle && (
-          <div className="flex justify-end px-6 pt-6">
-            <button
-              type="button"
-              className="pointer-events-auto rounded border border-yellow-500/60 bg-yellow-800/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-yellow-200 shadow-[0_0_14px_rgba(217,119,6,0.45)] transition hover:border-yellow-300/80 hover:bg-yellow-700/40"
-              onClick={handleReturnToDashboard}
-            >
-              Return to DaisyUI
-            </button>
+        {(canExitHud || showLayoutToggle) && (
+          <div className="flex justify-end gap-3 px-6 pt-6">
+            {canExitHud && (
+              <button
+                type="button"
+                className="btn btn-sm pointer-events-auto"
+                onClick={handleExitHud}
+              >
+                Exit
+              </button>
+            )}
+            {showLayoutToggle && (
+              <button
+                type="button"
+                className="pointer-events-auto rounded border border-yellow-500/60 bg-yellow-800/40 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-yellow-200 shadow-[0_0_14px_rgba(217,119,6,0.45)] transition hover:border-yellow-300/80 hover:bg-yellow-700/40"
+                onClick={handleExitHud}
+              >
+                Return to DaisyUI
+              </button>
+            )}
           </div>
         )}
 
@@ -185,7 +215,7 @@ export default function HudPage(): JSX.Element {
                 onViewStats={() => {
                   void refreshMetrics(true)
                 }}
-                className="w-full max-w-xl"
+                className="w-full"
               />
               <ManaOrb
                 progress={remainingRatio}
@@ -219,7 +249,7 @@ export default function HudPage(): JSX.Element {
             onViewStats={() => {
               void refreshMetrics(true)
             }}
-            className="w-full max-w-xl"
+            className="w-full"
           />
           <div className="text-xs opacity-80 md:text-sm">Press Cancel to forfeit this sprint</div>
         </div>

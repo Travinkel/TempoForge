@@ -1,9 +1,10 @@
 import React from "react";
+import type { ProjectCreateRequest } from "../../api/projects";
 
 type AddProjectModalProps = {
   open: boolean;
   onClose: () => void;
-  onAdd: (input: { name: string; isFavorite: boolean }) => Promise<void>;
+  onAdd: (input: ProjectCreateRequest & { isFavorite: boolean }) => Promise<void>;
 };
 
 export default function AddProjectModal({
@@ -15,6 +16,15 @@ export default function AddProjectModal({
   const [isFavorite, setIsFavorite] = React.useState(false);
   const [submitting, setSubmitting] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  const titleId = React.useId();
+  const errorId = React.useId();
+
+  const handleClose = React.useCallback(() => {
+    if (submitting) {
+      return;
+    }
+    onClose();
+  }, [onClose, submitting]);
 
   React.useEffect(() => {
     if (!open) {
@@ -26,16 +36,27 @@ export default function AddProjectModal({
     setError(null);
   }, [open]);
 
+  React.useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleClose, open]);
+
   if (!open) {
     return null;
   }
-
-  const handleClose = () => {
-    if (submitting) {
-      return;
-    }
-    onClose();
-  };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -63,9 +84,17 @@ export default function AddProjectModal({
   };
 
   return (
-    <div className="modal modal-open">
+    <div
+      className="modal modal-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={error ? errorId : undefined}
+    >
       <div className="modal-box space-y-4 bg-base-200 text-base-content">
-        <h2 className="text-lg font-semibold">Add Project</h2>
+        <h2 id={titleId} className="text-lg font-semibold">
+          Add Project
+        </h2>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="form-control w-full">
             <span className="label-text">Project name</span>
@@ -77,6 +106,8 @@ export default function AddProjectModal({
               placeholder="Name"
               autoFocus
               disabled={submitting}
+              aria-invalid={error ? true : undefined}
+              aria-describedby={error ? errorId : undefined}
             />
           </label>
 
@@ -91,7 +122,11 @@ export default function AddProjectModal({
             />
           </label>
 
-          {error ? <div className="text-sm text-error">{error}</div> : null}
+          {error ? (
+            <div id={errorId} className="text-sm text-error" role="alert">
+              {error}
+            </div>
+          ) : null}
 
           <div className="modal-action justify-end gap-2">
             <button
@@ -112,7 +147,7 @@ export default function AddProjectModal({
           </div>
         </form>
       </div>
-      <div className="modal-backdrop bg-black/40" onClick={handleClose} />
+      <div className="modal-backdrop bg-black/40" onClick={handleClose} role="presentation" />
     </div>
   );
 }

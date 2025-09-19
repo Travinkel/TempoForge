@@ -25,7 +25,7 @@ export function ActionSlot(
       aria-label={label}
       onClick={onClick}
       disabled={disabled}
-      className={`relative flex h-[72px] w-[72px] items-center justify-center transition-transform duration-150 ${
+      className={`relative flex aspect-square w-[min(12vw,12vh)] min-w-[9vh] items-center justify-center transition-transform duration-150 ${
         disabled ? 'opacity-50 cursor-not-allowed' : 'hover:scale-105 active:scale-95'
       } ${className}`}
     >

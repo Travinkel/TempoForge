@@ -19,11 +19,11 @@ export default function HudPanel({ side, className = '', children }: HudPanelPro
       {/* Absolute slot positioned roughly where the circular cutout is.
           These offsets may require fine-tuning to match the provided PNGs. */}
       {side === 'left' ? (
-        <div className="absolute bottom-[12px] left-[24px]">
+        <div className="absolute bottom-[2.2vh] left-[3vw]">
           {children}
         </div>
       ) : (
-        <div className="absolute bottom-[12px] right-[24px]">
+        <div className="absolute bottom-[2.2vh] right-[3vw]">
           {children}
         </div>
       )}

@@ -23,7 +23,10 @@ export default function ManaOrb({ progress, pulsing = false, className = '', mir
   const transformStyle = mirror ? ({ transform: 'scaleX(-1)' } as React.CSSProperties) : undefined
 
   return (
-    <div className={`relative w-[150px] h-[150px] ${className}`} style={transformStyle}>
+    <div
+      className={`relative aspect-square w-[24vw] min-w-[14vh] max-w-[26vh] ${className}`}
+      style={transformStyle}
+    >
       <div className="absolute inset-0" style={maskStyle}>
         <div
           className="absolute bottom-0 left-0 right-0 overflow-hidden transition-all duration-700"
@@ -48,7 +51,7 @@ export default function ManaOrb({ progress, pulsing = false, className = '', mir
         alt="Mana orb glass"
       />
       <img
-        src="/assets/ui/orb_angel.png"
+        src="/assets/ui/orb_demon.png"
         className={`absolute inset-0 w-full h-full object-contain pointer-events-none select-none ${
           pulsing ? 'animate-pulse' : ''
         }`}

@@ -24,6 +24,13 @@ export default function CustomDurationModal({
 }: CustomDurationModalProps) {
   const [value, setValue] = React.useState(String(initialMinutes));
   const [error, setError] = React.useState<string | null>(null);
+  const titleId = React.useId();
+  const descriptionId = React.useId();
+  const errorId = React.useId();
+
+  const handleClose = React.useCallback(() => {
+    onClose();
+  }, [onClose]);
 
   React.useEffect(() => {
     if (open) {
@@ -32,13 +39,27 @@ export default function CustomDurationModal({
     }
   }, [initialMinutes, open]);
 
+  React.useEffect(() => {
+    if (!open) {
+      return undefined;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        handleClose();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleClose, open]);
+
   if (!open) {
     return null;
   }
-
-  const handleClose = () => {
-    onClose();
-  };
 
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -56,10 +77,23 @@ export default function CustomDurationModal({
     onClose();
   };
 
+  const describedBy = error ? errorId : descriptionId;
+
   return (
-    <div className="modal modal-open">
+    <div
+      className="modal modal-open"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby={titleId}
+      aria-describedby={describedBy}
+    >
       <div className="modal-box space-y-4 bg-base-200 text-base-content">
-        <h2 className="text-lg font-semibold">Custom Duration</h2>
+        <h2 id={titleId} className="text-lg font-semibold">
+          Custom Duration
+        </h2>
+        <p id={descriptionId} className="text-sm text-base-content/70">
+          Choose how many minutes the next sprint should run.
+        </p>
         <form className="space-y-4" onSubmit={handleSubmit}>
           <label className="form-control w-full">
             <span className="label-text">Duration (minutes)</span>
@@ -67,24 +101,32 @@ export default function CustomDurationModal({
               type="number"
               min={minMinutes}
               max={maxMinutes}
+              step={1}
+              inputMode="numeric"
               className="input input-bordered"
               value={value}
               onChange={(event) => setValue(event.target.value)}
               autoFocus
+              aria-invalid={error ? true : undefined}
+              aria-describedby={describedBy}
             />
           </label>
-          {error ? <div className="text-sm text-error">{error}</div> : null}
+          {error ? (
+            <div id={errorId} className="text-sm text-error" role="alert">
+              {error}
+            </div>
+          ) : null}
           <div className="modal-action justify-end gap-2">
             <button type="button" className="btn btn-ghost" onClick={handleClose}>
               Cancel
             </button>
             <button type="submit" className="btn btn-primary">
-              Save
+              OK
             </button>
           </div>
         </form>
       </div>
-      <div className="modal-backdrop bg-black/40" onClick={handleClose} />
+      <div className="modal-backdrop bg-black/40" onClick={handleClose} role="presentation" />
     </div>
   );
 }

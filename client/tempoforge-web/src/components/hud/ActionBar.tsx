@@ -65,7 +65,7 @@ export default function ActionBar({
   ] as const
 
   return (
-    <div className={`relative w-full max-w-[640px] pointer-events-auto ${className}`}>
+    <div className={`relative w-full pointer-events-auto ${className}`} style={{ maxWidth: 'min(70vw, 68vh)' }}>
       {typeof progress === 'number' && (
         <MoltenProgressBar progress={progress} label={timerLabel} />
       )}
@@ -82,7 +82,7 @@ export default function ActionBar({
                 src="/assets/ui/divider.png"
                 alt=""
                 aria-hidden="true"
-                className="h-10 w-[10px] object-contain pointer-events-none select-none"
+                className="h-[5vh] w-[0.9vw] min-w-[0.6vh] object-contain pointer-events-none select-none"
               />
             )}
             {ActionSlot(

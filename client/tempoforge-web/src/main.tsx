@@ -8,9 +8,10 @@ import type { Project } from "./api/projects";
 import { getProjects, addProject } from "./api/projects";
 import { SprintProvider } from "./context/SprintContext";
 import { UserSettingsProvider } from "./context/UserSettingsContext";
+import { API_BASE } from "./config";
 import "./index.css";
 
-console.log("API base:", import.meta.env.VITE_API_BASE_URL);
+console.log("API base:", API_BASE);
 
 function Projects() {
   const [items, setItems] = React.useState<Project[]>([]);
