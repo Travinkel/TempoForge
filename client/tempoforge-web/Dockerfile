@@ -1,8 +1,9 @@
 # build
-FROM node:20-alpine AS build
+FROM node:20-bullseye AS build
 WORKDIR /app
 COPY package*.json ./
-RUN npm ci
+RUN npm install
+RUN npm install @rollup/rollup-linux-x64-gnu
 COPY . .
 RUN npm run build
 
