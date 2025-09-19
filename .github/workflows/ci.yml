@@ -29,3 +29,19 @@ jobs:
           DOTNET_RUNNING_IN_CONTAINER: "false"
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: dotnet test --no-build -v n --no-parallel
+
+      - name: Setup Flyctl
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy API
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd server/TempoForge.Api
+          flyctl deploy --app tempoforge-api --remote-only
+
+      - name: Deploy Web
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          cd client/tempoforge-web
+          flyctl deploy --app tempoforge-web --remote-only
