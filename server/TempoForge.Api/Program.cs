@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
@@ -46,8 +47,16 @@ builder.Services.AddScoped<QuestService>();
 builder.Services.AddScoped<ISprintService, SprintService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 
+var clientOriginsSetting = builder.Configuration["ClientOrigins"] ?? builder.Configuration["ClientOrigin"];
+var allowedOrigins = (clientOriginsSetting ?? "http://localhost:5173")
+    .Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+if (allowedOrigins.Length == 0)
+{
+    allowedOrigins = new[] { "http://localhost:5173" };
+}
+
 builder.Services.AddCors(o => o.AddPolicy("web", p => p
-    .WithOrigins(builder.Configuration["ClientOrigin"] ?? "http://localhost:5173")
+    .WithOrigins(allowedOrigins)
     .AllowAnyHeader()
     .AllowAnyMethod()));
 
@@ -63,6 +72,7 @@ app.Lifetime.ApplicationStarted.Register(() =>
         {
             var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
             await db.Database.MigrateAsync();
+            DataSeeder.Seed(db);
             if (app.Environment.IsDevelopment())
             {
                 await TempoForgeSeeder.SeedAsync(db);

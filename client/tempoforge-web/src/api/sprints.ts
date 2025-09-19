@@ -126,13 +126,6 @@ export async function abortSprintRequest(id: string): Promise<SprintDto> {
 }
 
 export async function getRunningSprint(): Promise<SprintDto | null> {
-  try {
-    const { data } = await http.get<SprintDto>('/api/sprints/running')
-    return data
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error) && error.response?.status === 404) {
-      return null
-    }
-    throw error
-  }
+  const { data } = await http.get<SprintDto | null>('/api/sprints/running')
+  return data ?? null
 }
