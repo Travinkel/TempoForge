@@ -1,4 +1,5 @@
 import React from "react";
+import ModalShell from "./ModalShell";
 
 type CustomDurationModalProps = {
   open: boolean;
@@ -39,24 +40,6 @@ export default function CustomDurationModal({
     }
   }, [initialMinutes, open]);
 
-  React.useEffect(() => {
-    if (!open) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        handleClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleClose, open]);
-
   if (!open) {
     return null;
   }
@@ -80,12 +63,11 @@ export default function CustomDurationModal({
   const describedBy = error ? errorId : descriptionId;
 
   return (
-    <div
-      className="modal modal-open"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      aria-describedby={describedBy}
+    <ModalShell
+      open={open}
+      onClose={handleClose}
+      labelledBy={titleId}
+      describedBy={describedBy}
     >
       <div className="modal-box space-y-4 bg-base-200 text-base-content">
         <h2 id={titleId} className="text-lg font-semibold">
@@ -126,7 +108,6 @@ export default function CustomDurationModal({
           </div>
         </form>
       </div>
-      <div className="modal-backdrop bg-black/40" onClick={handleClose} role="presentation" />
-    </div>
+    </ModalShell>
   );
 }
