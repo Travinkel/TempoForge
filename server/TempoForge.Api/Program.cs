@@ -43,7 +43,6 @@ builder.Services.AddDbContext<TempoForgeDbContext>(o =>
 });
 builder.Services.AddScoped<IProjectService, ProjectService>();
 builder.Services.AddScoped<IQuestService, QuestService>();
-builder.Services.AddScoped<QuestService>();
 builder.Services.AddScoped<ISprintService, SprintService>();
 builder.Services.AddScoped<IStatsService, StatsService>();
 

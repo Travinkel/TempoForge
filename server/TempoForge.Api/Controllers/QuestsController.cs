@@ -12,9 +12,9 @@ namespace TempoForge.Api.Controllers;
 [Route("api/[controller]")]
 public class QuestsController : ControllerBase
 {
-    private readonly QuestService _service;
+    private readonly IQuestService _service;
 
-    public QuestsController(QuestService service)
+    public QuestsController(IQuestService service)
         => _service = service;
 
     /// <summary>
