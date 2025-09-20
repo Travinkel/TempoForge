@@ -32,7 +32,8 @@ jobs:
         run: |
           mkdir -p TestResults
           dotnet test TempoForge.sln --no-build --configuration Release --verbosity normal \
-            --logger "trx;LogFileName=TestResults/backend-tests.trx"
+            --logger "trx;LogFileName=backend-tests.trx" \
+            --results-directory TestResults
 
       - name: Upload backend test results
         if: always()
