@@ -1,5 +1,7 @@
 import React from "react"
 
+import CardShell from "./CardShell"
+
 export type ProjectCreateInput = {
   name: string
   isFavorite: boolean
@@ -31,10 +33,7 @@ export function ProjectForm({
   }
 
   return (
-    <form
-      className="card bg-base-200/80 text-base-content border border-base-content/10 shadow-lg backdrop-blur"
-      onSubmit={handleSubmit}
-    >
+    <CardShell as="form" onSubmit={handleSubmit}>
       <div className="card-body gap-4">
         <div className="space-y-2">
           <label className="text-xs uppercase tracking-[0.24em] text-base-content/60">Name</label>
@@ -67,6 +66,6 @@ export function ProjectForm({
           </button>
         </div>
       </div>
-    </form>
+    </CardShell>
   )
 }

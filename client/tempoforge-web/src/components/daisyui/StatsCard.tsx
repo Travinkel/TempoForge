@@ -1,5 +1,7 @@
 import React from "react"
 
+import CardShell from "./CardShell"
+
 interface StatsCardProps {
   minutes?: number | null
   sprints?: number | null
@@ -25,22 +27,8 @@ export default function StatsCard({ minutes, sprints, streakDays, loading = fals
     { label: "Streak", value: formatValue(streakDays, (val) => `${val} day${val === 1 ? "" : "s"}`) },
   ]
 
-  const cardClass = [
-    "card",
-    "h-full",
-    "bg-base-200/80",
-    "text-base-content",
-    "border",
-    "border-base-content/10",
-    "shadow-lg",
-    "backdrop-blur",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
   return (
-    <div className={cardClass}>
+    <CardShell className={className} fullHeight>
       <div className="card-body gap-5">
         <div className="flex items-center justify-between">
           <h2 className="heading-gilded gold-text text-lg tracking-[0.4em]">TODAY'S STATS</h2>
@@ -73,6 +61,6 @@ export default function StatsCard({ minutes, sprints, streakDays, loading = fals
           </div>
         )}
       </div>
-    </div>
+    </CardShell>
   )
 }

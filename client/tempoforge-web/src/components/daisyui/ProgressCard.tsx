@@ -1,6 +1,8 @@
 import React from "react"
 import type { ProgressStats } from "../../api/sprints"
 
+import CardShell from "./CardShell"
+
 type ProgressCardProps = {
   progress: ProgressStats | null
   loading?: boolean
@@ -36,21 +38,8 @@ export default function ProgressCard({ progress, loading = false, className = ""
   const summaryLabel = loading ? "Calculating progress..." : nextLabel
   const standingLabel = loading ? "-" : progress?.standing ?? "N/A"
 
-  const cardClassName = [
-    "card",
-    "bg-base-200/80",
-    "text-base-content",
-    "border",
-    "border-base-content/10",
-    "shadow-lg",
-    "backdrop-blur",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
   return (
-    <div className={cardClassName}>
+    <CardShell className={className}>
       <div className="card-body gap-5 p-5">
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
@@ -90,6 +79,6 @@ export default function ProgressCard({ progress, loading = false, className = ""
           </div>
         </div>
       </div>
-    </div>
+    </CardShell>
   )
 }
