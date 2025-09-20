@@ -43,18 +43,33 @@ body {
     color: #B22222;
     text-shadow: 1px 1px 3px #000;
   }
+  .card.glow-box {
+    --card-glow: hsl(var(--a) / 0.45);
+    --card-glow-strong: hsl(var(--a) / 0.6);
+  }
+
   .card.glow-box > .card-body {
-  font-family: var(--inter);
-  min-height: 100vh;
-  background:
-    url('/assets/grain.png') repeat,
-    var(--b1);
-  background-size: 200px 200px, auto;
-  background-blend-mode: overlay;
-  background-attachment: fixed;
-  color: hsl(var(--bc, 40 20% 92%));
-  transition: background-color 0.25s ease, background-image 0.4s ease, color 0.2s ease;
-}
+    font-family: var(--inter);
+    background:
+      url('/assets/grain.png') repeat,
+      linear-gradient(var(--grain-overlay), var(--grain-overlay)),
+      var(--b1);
+    background-size: 200px 200px, auto, auto;
+    background-blend-mode: overlay;
+    background-attachment: local;
+    border-radius: inherit;
+    color: hsl(var(--bc, 40 20% 92%));
+    transition:
+      background-color 0.25s ease,
+      background-image 0.4s ease,
+      color 0.2s ease,
+      box-shadow 0.4s ease;
+    box-shadow:
+      0 0 0 1px var(--grain-overlay),
+      0 0 0 6px hsl(var(--a) / 0.15),
+      0 18px 45px -20px var(--card-glow),
+      0 0 38px -12px var(--card-glow-strong);
+  }
 }
 
 
