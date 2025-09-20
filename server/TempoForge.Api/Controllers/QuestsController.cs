@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using TempoForge.Api;
 using TempoForge.Application.Quests;
 
 namespace TempoForge.Api.Controllers;
@@ -52,23 +53,15 @@ public class QuestsController : ControllerBase
             var quest = await _service.ClaimRewardAsync(id, ct);
             if (quest is null)
             {
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Quest not found", $"Quest '{id}' was not found."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Quest not found", $"Quest '{id}' was not found."));
             }
 
             return Ok(quest);
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(CreateProblem(StatusCodes.Status409Conflict, "Quest not yet completed", ex.Message));
+            return Conflict(this.CreateProblem(StatusCodes.Status409Conflict, "Quest not yet completed", ex.Message));
         }
     }
 
-    private ProblemDetails CreateProblem(int statusCode, string title, string detail)
-        => new()
-        {
-            Title = title,
-            Status = statusCode,
-            Detail = detail,
-            Instance = HttpContext.Request.Path
-        };
 }
