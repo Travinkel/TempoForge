@@ -15,7 +15,7 @@ public class EmptyStateApiTests : IClassFixture<ApiTestFixture>
     public EmptyStateApiTests(ApiTestFixture fixture)
     {
         _fixture = fixture;
-        _fixture.ResetDatabaseAsync(reseed: false).GetAwaiter().GetResult();
+        _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
     }
 
     [Fact]

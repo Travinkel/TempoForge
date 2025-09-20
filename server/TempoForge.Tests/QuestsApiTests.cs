@@ -19,6 +19,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     {
         _fixture = fixture;
         _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
+        _fixture.SeedTestDataAsync().GetAwaiter().GetResult();
     }
 
     [Fact]

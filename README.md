@@ -135,7 +135,7 @@ docker run --rm -p 4173:4173 --env VITE_API_BASE_URL="http://localhost:5000" tem
   dotnet test server/TempoForge.Tests/TempoForge.Tests.csproj
   ```
   Includes TestContainers coverage for sprint lifecycle + favorites, and QuestService in-memory unit tests.
-  The integration harness's [`ApiTestFixture`](server/TempoForge.Tests/Infrastructure/ApiTestFixture.cs) truncates the `Projects`, `Sprints`, and `Quests` tables before each run via `ResetDatabaseAsync`, which keeps the filtered unique index on running sprints (`Status = 1`) from colliding with stale rows. When adding new integration specs, call `ResetDatabaseAsync(reseed: true)` to repopulate the baseline data; the index is configured in [`TempoForgeDbContext`](server/TempoForge.Infrastructure/Data/TempoForgeDbContext.cs).
+  The integration harness's [`ApiTestFixture`](server/TempoForge.Tests/Infrastructure/ApiTestFixture.cs) truncates the `Projects`, `Sprints`, and `Quests` tables before each run via `ResetDatabaseAsync`, which keeps the filtered unique index on running sprints (`Status = 1`) from colliding with stale rows. When adding new integration specs, call `ResetDatabaseAsync()` to clear the database and use `SeedTestDataAsync()` if you need the shared baseline quests/projects for your scenario; the index is configured in [`TempoForgeDbContext`](server/TempoForge.Infrastructure/Data/TempoForgeDbContext.cs).
 - Verify the frontend build (type-check + production bundle):
   ```bash
   cd client/tempoforge-web
