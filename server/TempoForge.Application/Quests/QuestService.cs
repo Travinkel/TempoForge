@@ -165,7 +165,7 @@ public class QuestService : IQuestService
 
         var cursor = startOfDayUtc.Date;
         var streak = 0;
-        while (lookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= DailyGoalTarget)
+        while (lookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= 1)
         {
             streak++;
             cursor = cursor.AddDays(-1);

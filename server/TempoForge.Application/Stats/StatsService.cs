@@ -68,7 +68,7 @@ public class StatsService : IStatsService
 
         var cursor = startOfDayUtc;
         var streak = 0;
-        while (completionLookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= DefaultDailyGoal)
+        while (completionLookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= 1)
         {
             streak++;
             cursor = cursor.AddDays(-1);
