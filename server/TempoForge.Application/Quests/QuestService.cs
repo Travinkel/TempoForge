@@ -23,29 +23,48 @@ public class QuestService : IQuestService
     {
         var now = DateTime.UtcNow;
         var startOfDay = new DateTime(now.Year, now.Month, now.Day, 0, 0, 0, DateTimeKind.Utc);
-        var startOfWeek = GetStartOfWeek(startOfDay);
-        var endOfDay = startOfDay.AddDays(1);
 
-        var todayCount = await _db.Sprints
-            .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfDay && s.CompletedAt < endOfDay)
-            .CountAsync(ct);
+        var quests = await _db.Quests.ToListAsync(ct);
 
-        var weekCount = await _db.Sprints
-            .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= startOfWeek)
-            .CountAsync(ct);
+        var dirty = false;
+        foreach (var quest in quests)
+        {
+            dirty |= EnsureCurrent(quest, now);
+        }
 
-        var totalCount = await _db.Sprints
-            .CountAsync(s => s.Status == SprintStatus.Completed, ct);
+        if (dirty)
+        {
+            await _db.SaveChangesAsync(ct);
+        }
+
+        QuestDto MapQuest(Quest quest)
+            => new(quest.Name, quest.Type.ToString(), quest.Goal, quest.Progress, quest.RewardClaimed || quest.Progress >= quest.Goal);
 
         var streak = await CalculateStreakAsync(startOfDay, ct);
 
-        return new List<QuestDto>
+        var result = new List<QuestDto>();
+
+        var dailyQuest = quests.FirstOrDefault(q => q.Type == QuestType.Daily);
+        if (dailyQuest is not null)
         {
-            new("Complete 3 sprints today", "Daily", DailyGoalTarget, todayCount, todayCount >= DailyGoalTarget),
-            new("Maintain streak >= 5 days", "Weekly", StreakGoalTarget, streak, streak >= StreakGoalTarget),
-            new("Complete 15 sprints this week", "Weekly", WeeklyGoalTarget, weekCount, weekCount >= WeeklyGoalTarget),
-            new("Epic: 100 total sprints", "Epic", EpicGoalTarget, totalCount, totalCount >= EpicGoalTarget)
-        };
+            result.Add(MapQuest(dailyQuest));
+        }
+
+        result.Add(new QuestDto("Maintain streak >= 5 days", "Weekly", StreakGoalTarget, streak, streak >= StreakGoalTarget));
+
+        var weeklyQuest = quests.FirstOrDefault(q => q.Type == QuestType.Weekly);
+        if (weeklyQuest is not null)
+        {
+            result.Add(MapQuest(weeklyQuest));
+        }
+
+        var epicQuest = quests.FirstOrDefault(q => q.Type == QuestType.Epic);
+        if (epicQuest is not null)
+        {
+            result.Add(MapQuest(epicQuest));
+        }
+
+        return result;
     }
 
     public async Task<ActiveQuestsDto> GetActiveQuestsAsync(CancellationToken ct)
