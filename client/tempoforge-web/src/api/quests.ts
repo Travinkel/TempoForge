@@ -1,7 +1,4 @@
-import axios from 'axios'
-import { API_BASE } from '../config'
-
-const http = axios.create({ baseURL: API_BASE })
+import http from './http'
 
 export type QuestType = 'Daily' | 'Weekly' | 'Epic'
 
