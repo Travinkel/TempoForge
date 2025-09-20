@@ -1,6 +1,8 @@
 import React from "react"
 import type { Project } from "../../api/projects"
 
+import CardShell from "./CardShell"
+
 export type { Project }
 
 const formatTimestamp = (value: string | null | undefined, emptyFallback: string): string => {
@@ -35,10 +37,7 @@ export function ProjectList({
   return (
     <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
       {items.map((p) => (
-        <li
-          key={p.id}
-          className="card bg-base-200/80 text-base-content border border-base-content/10 shadow-lg backdrop-blur"
-        >
+        <CardShell as="li" key={p.id}>
           <div className="card-body gap-3">
             <div className="flex items-start justify-between gap-4">
               <h3 className="text-lg font-semibold text-base-content">{p.name}</h3>
@@ -75,7 +74,7 @@ export function ProjectList({
               Last used {formatTimestamp(p.lastUsedAt, "Not used yet")}
             </p>
           </div>
-        </li>
+        </CardShell>
       ))}
     </ul>
   )

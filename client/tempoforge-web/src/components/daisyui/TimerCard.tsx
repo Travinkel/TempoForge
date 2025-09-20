@@ -1,5 +1,7 @@
 import React from "react"
 
+import CardShell from "./CardShell"
+
 type TimerCardProps = {
   label: string
   subtitle: string
@@ -27,22 +29,8 @@ export default function TimerCard({
     ? "text-6xl font-mono text-error drop-shadow"
     : "text-6xl font-mono text-primary drop-shadow"
 
-  const cardClassName = [
-    "card",
-    "h-full",
-    "bg-base-200/80",
-    "text-base-content",
-    "border",
-    "border-base-content/10",
-    "shadow-lg",
-    "backdrop-blur",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
   return (
-    <div className={cardClassName}>
+    <CardShell className={className} fullHeight>
       <div className="card-body items-center justify-center gap-5 text-center">
         <h2 className="text-lg font-semibold text-base-content">Focus Timer</h2>
         <div className={timerClass}>{label}</div>
@@ -77,6 +65,6 @@ export default function TimerCard({
           )}
         </div>
       </div>
-    </div>
+    </CardShell>
   )
 }

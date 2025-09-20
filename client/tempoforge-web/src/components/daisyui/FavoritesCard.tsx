@@ -1,5 +1,7 @@
 import React from "react"
 
+import CardShell from "./CardShell"
+
 type FavoritesCardProps = {
   items: string[]
   loading?: boolean
@@ -9,21 +11,8 @@ type FavoritesCardProps = {
 }
 
 export default function FavoritesCard({ items, loading = false, error, onRetry, className = "" }: FavoritesCardProps) {
-  const cardClassName = [
-    "card",
-    "bg-base-200/80",
-    "text-base-content",
-    "border",
-    "border-base-content/10",
-    "shadow-lg",
-    "backdrop-blur",
-    className,
-  ]
-    .filter(Boolean)
-    .join(" ")
-
   return (
-    <div className={cardClassName}>
+    <CardShell className={className}>
       <div className="card-body gap-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold text-base-content">Favorites</h2>
@@ -60,6 +49,6 @@ export default function FavoritesCard({ items, loading = false, error, onRetry, 
           </div>
         )}
       </div>
-    </div>
+    </CardShell>
   )
 }
