@@ -8,7 +8,7 @@ namespace TempoForge.Application.Stats;
 public class StatsService : IStatsService
 {
     private const int DefaultDailyGoal = 3;
-    private const int MinimumDailyCompletionsForStreak = 1;
+    private const int MinimumDailyCompletionsForStreak = 1; // Any completed sprint counts toward streak progress.
     private const int DefaultWeeklyGoal = 15;
     private const int DefaultEpicGoal = 100;
     private const int BronzeTarget = 20;
@@ -67,7 +67,7 @@ public class StatsService : IStatsService
 
         var completionLookup = completionsByDay.ToDictionary(x => x.Date, x => x.Count);
 
-        var cursor = startOfDayUtc;
+        var cursor = startOfDayUtc.Date;
         var streak = 0;
         while (completionLookup.TryGetValue(cursor, out var dailyCount) &&
                dailyCount >= MinimumDailyCompletionsForStreak)
