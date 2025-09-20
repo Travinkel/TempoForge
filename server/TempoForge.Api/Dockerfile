@@ -1,3 +1,6 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+WORKDIR /app
+
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY server/TempoForge.Api ./TempoForge.Api
@@ -9,7 +12,7 @@ COPY TempoForge.sln ./
 RUN dotnet restore ./TempoForge.Api/TempoForge.Api.csproj
 RUN dotnet publish ./TempoForge.Api/TempoForge.Api.csproj -c Release -o /app/publish
 
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENV ASPNETCORE_URLS=http://+:8080
