@@ -14,12 +14,12 @@ public class EndToEndApiTests : IClassFixture<ApiTestFixture>
     public EndToEndApiTests(ApiTestFixture fixture)
     {
         _fixture = fixture;
+        _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
     }
 
     [Fact]
     public async Task SprintLifecycle_UpdatesProgressStats()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Lifecycle Project");
 
@@ -37,7 +37,6 @@ public class EndToEndApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ToggleFavorite_PersistsInFavoritesEndpoint()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var projectId = await CreateProjectAsync(client, "Favorite Toggle", isFavorite: false);

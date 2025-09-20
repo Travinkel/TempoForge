@@ -25,7 +25,7 @@ public class StatsController : ControllerBase
     public async Task<ActionResult<TodayStatsDto>> GetToday(CancellationToken ct)
     {
         var stats = await _statsService.GetTodayStatsAsync(ct);
-        return Ok(stats);
+        return Ok(stats ?? new TodayStatsDto(0, 0, 0));
     }
 
     /// <summary>
@@ -36,6 +36,6 @@ public class StatsController : ControllerBase
     public async Task<ActionResult<ProgressDto>> GetProgress(CancellationToken ct)
     {
         var stats = await _statsService.GetProgressAsync(ct);
-        return Ok(stats);
+        return Ok(stats ?? new ProgressDto("Bronze", 0, 0, null, new QuestSnapshot(0, 0, 0, 0, 0, 0)));
     }
 }

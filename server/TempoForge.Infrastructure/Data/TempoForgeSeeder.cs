@@ -1,4 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 using TempoForge.Domain.Entities;
 
 namespace TempoForge.Infrastructure.Data;
@@ -11,17 +13,23 @@ public static class TempoForgeSeeder
 
     public static async Task SeedAsync(TempoForgeDbContext db, CancellationToken ct = default)
     {
-        await SeedProjectsAsync(db, ct);
-        await SeedQuestsAsync(db, ct);
-    }
+        ArgumentNullException.ThrowIfNull(db);
 
-    private static async Task SeedProjectsAsync(TempoForgeDbContext db, CancellationToken ct)
-    {
-        if (await db.Projects.AnyAsync(ct))
+        var hasProjects = await db.Projects.AnyAsync(ct);
+        var hasQuests = await db.Quests.AnyAsync(ct);
+        var hasSprints = await db.Sprints.AnyAsync(ct);
+
+        if (hasProjects || hasQuests || hasSprints)
         {
             return;
         }
 
+        await SeedProjectsAndSprintsAsync(db, ct);
+        await SeedQuestsAsync(db, ct);
+    }
+
+    private static async Task SeedProjectsAndSprintsAsync(TempoForgeDbContext db, CancellationToken ct)
+    {
         var now = DateTime.UtcNow;
         var todayMorning = ToUtc(now.Date.AddHours(8));
         var yesterday = ToUtc(todayMorning.AddDays(-1));

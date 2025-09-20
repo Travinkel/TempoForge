@@ -1,7 +1,9 @@
 using Microsoft.AspNetCore.Http;
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using TempoForge.Application.Sprints;
+using TempoForge.Domain.Entities;
 
 namespace TempoForge.Api.Controllers;
 
@@ -115,10 +117,15 @@ public class SprintsController : ControllerBase
     /// </summary>
     [HttpGet("running")]
     [ProducesResponseType(typeof(SprintDto), StatusCodes.Status200OK)]
-    public async Task<ActionResult<SprintDto?>> GetRunning(CancellationToken ct)
+    public async Task<ActionResult<object>> GetRunning(CancellationToken ct)
     {
         var sprint = await _service.GetRunningAsync(ct);
-        return Ok(sprint is null ? null : SprintDto.From(sprint));
+        if (sprint is null)
+        {
+            return Ok(new { });
+        }
+
+        return Ok(SprintDto.From(sprint));
     }
 
     /// <summary>
@@ -128,8 +135,9 @@ public class SprintsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<RecentSprintDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<RecentSprintDto>>> GetRecent([FromQuery] int take = 5, CancellationToken ct = default)
     {
-        var sprints = await _service.GetRecentAsync(take, ct);
-        return Ok(sprints.Select(RecentSprintDto.From));
+        var sprints = await _service.GetRecentAsync(take, ct) ?? new List<Sprint>();
+        var projection = sprints.Select(RecentSprintDto.From).ToList();
+        return Ok(projection);
     }
 
     private ProblemDetails CreateProblem(int statusCode, string title, string detail)

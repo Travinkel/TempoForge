@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using Microsoft.AspNetCore.Mvc;
 using TempoForge.Application.Quests;
 
 namespace TempoForge.Api.Controllers;
@@ -21,7 +22,10 @@ public class QuestsController : ControllerBase
     [HttpGet("active")]
     [ProducesResponseType(typeof(List<QuestDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<QuestDto>>> GetActive(CancellationToken ct)
-        => Ok(await _service.GetActiveAsync(ct));
+    {
+        var quests = await _service.GetActiveAsync(ct) ?? new List<QuestDto>();
+        return Ok(quests);
+    }
 
     /// <summary>
     /// Retrieves the active quest entities grouped by type for reward tracking.
@@ -29,7 +33,10 @@ public class QuestsController : ControllerBase
     [HttpGet("active/details")]
     [ProducesResponseType(typeof(ActiveQuestsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ActiveQuestsDto>> GetDetailedActive(CancellationToken ct)
-        => Ok(await _service.GetActiveQuestsAsync(ct));
+    {
+        var quests = await _service.GetActiveQuestsAsync(ct);
+        return Ok(quests ?? new ActiveQuestsDto(null, null, null));
+    }
 
     /// <summary>
     /// Marks a quest reward as claimed once its goal has been met.

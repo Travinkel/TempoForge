@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
 using TempoForge.Application.Projects;
+using TempoForge.Domain.Entities;
 
 namespace TempoForge.Api.Controllers;
 
@@ -41,8 +43,9 @@ public class ProjectsController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<ProjectDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetFavorites(CancellationToken ct)
     {
-        var favorites = await _service.GetFavoritesAsync(ct);
-        return Ok(favorites.Select(ProjectDto.From));
+        var favorites = await _service.GetFavoritesAsync(ct) ?? new List<Project>();
+        var projection = favorites.Select(ProjectDto.From).ToList();
+        return Ok(projection);
     }
 
     /// <summary>
