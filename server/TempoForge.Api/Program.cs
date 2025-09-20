@@ -71,7 +71,12 @@ app.Lifetime.ApplicationStarted.Register(() =>
         {
             var db = scope.ServiceProvider.GetRequiredService<TempoForgeDbContext>();
             await db.Database.MigrateAsync();
-            DataSeeder.Seed(db);
+
+            if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
+            {
+                DataSeeder.Seed(db, app.Environment);
+            }
+
             if (app.Environment.IsDevelopment())
             {
                 await TempoForgeSeeder.SeedAsync(db);

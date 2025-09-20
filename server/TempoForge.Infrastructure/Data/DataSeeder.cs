@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Hosting;
 using TempoForge.Domain.Entities;
 
 namespace TempoForge.Infrastructure.Data;
@@ -18,9 +19,15 @@ public static class DataSeeder
     public static readonly Guid EpicMasterSortingQuestId = Guid.Parse("4C34537C-C8BA-4EA0-A182-7AF68C9486AE");
     public static readonly Guid EpicDeployDemoQuestId = Guid.Parse("991DD330-9976-43E5-BF3C-F7E7FED5E210");
 
-    public static void Seed(TempoForgeDbContext context)
+    public static void Seed(TempoForgeDbContext context, IHostEnvironment hostEnvironment)
     {
         ArgumentNullException.ThrowIfNull(context);
+        ArgumentNullException.ThrowIfNull(hostEnvironment);
+
+        if (hostEnvironment.IsEnvironment("Test"))
+        {
+            return;
+        }
 
         var referenceUtc = DateTime.UtcNow;
         var hasChanges = false;

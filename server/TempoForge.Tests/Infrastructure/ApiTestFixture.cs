@@ -73,7 +73,7 @@ public sealed class ApiTestFixture : IAsyncLifetime
         return new TempoForgeDbContext(options);
     }
 
-    public async Task ResetDatabaseAsync(bool reseed = true)
+    public async Task ResetDatabaseAsync()
     {
         if (_factory is null)
         {
@@ -88,12 +88,25 @@ public sealed class ApiTestFixture : IAsyncLifetime
             await using var command = connection.CreateCommand();
             command.CommandText = "TRUNCATE TABLE \"Projects\", \"Sprints\", \"Quests\" RESTART IDENTITY CASCADE;";
             await command.ExecuteNonQueryAsync();
+        }
+        finally
+        {
+            _resetSemaphore.Release();
+        }
+    }
 
-            if (reseed)
-            {
-                await using var context = CreateDbContext();
-                await TempoForgeSeeder.SeedAsync(context);
-            }
+    public async Task SeedTestDataAsync()
+    {
+        if (_factory is null)
+        {
+            throw new InvalidOperationException(_skipReason);
+        }
+
+        await _resetSemaphore.WaitAsync();
+        try
+        {
+            await using var context = CreateDbContext();
+            await TempoForgeSeeder.SeedAsync(context);
         }
         finally
         {
@@ -116,8 +129,6 @@ public sealed class ApiTestFixture : IAsyncLifetime
 
             await using var ctx = new TempoForgeDbContext(options);
             await ctx.Database.MigrateAsync();
-            await TempoForgeSeeder.SeedAsync(ctx);
-
             _factory = new TempoForgeApiFactory(ConnectionString);
             _skipReason = string.Empty;
         }
