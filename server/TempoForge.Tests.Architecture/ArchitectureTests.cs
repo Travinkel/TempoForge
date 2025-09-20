@@ -1,64 +1,93 @@
-using NetArchTest.Rules;
+using ArchUnitNET.Domain;
+using ArchUnitNET.Loader;
+using static ArchUnitNET.Fluent.ArchRuleDefinition;
+using TempoForge.Api;
 using TempoForge.Application.Projects;
 using TempoForge.Domain.Entities;
 using TempoForge.Infrastructure.Data;
-using TempoForge.Api;
 using Xunit;
 
 namespace TempoForge.Tests.Architecture;
 
-public static class ArchitectureTestHelpers
+public class ArchitectureFixture
 {
-    public static string Describe(this TestResult result)
+    public ArchitectureFixture()
     {
-        if (result.IsSuccessful)
-        {
-            return string.Empty;
-        }
-
-        var failing = string.Join(Environment.NewLine, result.FailingTypeNames);
-        return $"Failing types:{Environment.NewLine}{failing}";
+        Architecture = new ArchLoader().LoadAssemblies(
+            typeof(Project).Assembly,
+            typeof(ProjectService).Assembly,
+            typeof(TempoForgeDbContext).Assembly,
+            typeof(Program).Assembly
+        ).Build();
     }
+
+    public Architecture Architecture { get; }
 }
 
-public class ArchitectureTests
+public class ArchitectureTests : IClassFixture<ArchitectureFixture>
 {
+    private const string ApiNamespace = "TempoForge.Api";
     private const string ApplicationNamespace = "TempoForge.Application";
     private const string DomainNamespace = "TempoForge.Domain";
     private const string InfrastructureNamespace = "TempoForge.Infrastructure";
 
+    private readonly Architecture _architecture;
+
+    public ArchitectureTests(ArchitectureFixture fixture)
+    {
+        _architecture = fixture.Architecture;
+    }
+
     [Fact]
     public void Domain_Should_Not_Depend_On_Application_Or_Infrastructure()
     {
-        var result = Types.InAssembly(typeof(Project).Assembly)
-            .Should()
-            .NotHaveDependencyOnAll(ApplicationNamespace, InfrastructureNamespace)
-            .GetResult();
+        var domainTypes = Types().That()
+            .ResideInNamespace(DomainNamespace, true)
+            .As("Domain layer types");
 
-        Assert.True(result.IsSuccessful, result.Describe());
+        var applicationOrInfrastructureTypes = Types().That()
+            .ResideInNamespace(ApplicationNamespace, true)
+            .Or().ResideInNamespace(InfrastructureNamespace, true)
+            .As("Application or infrastructure layer types");
+
+        domainTypes.Should()
+            .NotDependOnAny(applicationOrInfrastructureTypes)
+            .Because("the domain layer must remain independent from other layers")
+            .Check(_architecture);
     }
 
     [Fact]
     public void Application_Should_Not_Depend_On_Infrastructure()
     {
-        var result = Types.InAssembly(typeof(ProjectService).Assembly)
-            .Should()
-            .NotHaveDependencyOn(InfrastructureNamespace)
-            .GetResult();
+        var applicationTypes = Types().That()
+            .ResideInNamespace(ApplicationNamespace, true)
+            .As("Application layer types");
 
-        Assert.True(result.IsSuccessful, result.Describe());
+        var infrastructureTypes = Types().That()
+            .ResideInNamespace(InfrastructureNamespace, true)
+            .As("Infrastructure layer types");
+
+        applicationTypes.Should()
+            .NotDependOnAny(infrastructureTypes)
+            .Because("the application layer should be decoupled from infrastructure concerns")
+            .Check(_architecture);
     }
 
     [Fact]
     public void Api_Should_Not_Depend_On_Infrastructure_Beyond_Composition()
     {
-        var result = Types.InAssembly(typeof(Program).Assembly)
-            .That()
-            .DoNotHaveName("Program")
-            .Should()
-            .NotHaveDependencyOn(InfrastructureNamespace)
-            .GetResult();
+        var apiTypes = Types().That()
+            .ResideInNamespace(ApiNamespace, true)
+            .And().AreNot(typeof(Program))
+            .As("API composition types excluding Program");
 
-        Assert.True(result.IsSuccessful, result.Describe());
+        var infrastructureTypes = Types().That()
+            .ResideInNamespace(InfrastructureNamespace, true)
+            .As("Infrastructure layer types");
+
+        apiTypes.Should()
+            .NotDependOnAny(infrastructureTypes)
+            .Because("API components other than Program should not take direct infrastructure dependencies")
+            .Check(_architecture);
     }
 }
