@@ -11,6 +11,7 @@ public class QuestService : IQuestService
     private const int EpicGoalTarget = 100;
     private const int StreakGoalTarget = 5;
     private const int StreakLookbackDays = 30;
+    private const int MinimumDailyCompletionsForStreak = 1;
 
     private readonly TempoForgeDbContext _db;
 
@@ -165,7 +166,8 @@ public class QuestService : IQuestService
 
         var cursor = startOfDayUtc.Date;
         var streak = 0;
-        while (lookup.TryGetValue(cursor, out var dailyCount) && dailyCount >= DailyGoalTarget)
+        while (lookup.TryGetValue(cursor, out var dailyCount) &&
+               dailyCount >= MinimumDailyCompletionsForStreak)
         {
             streak++;
             cursor = cursor.AddDays(-1);
