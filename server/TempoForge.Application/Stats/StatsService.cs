@@ -27,7 +27,7 @@ public class StatsService : IStatsService
     public async Task<TodayStatsDto> GetTodayStatsAsync(CancellationToken ct)
     {
         var now = DateTime.UtcNow;
-        var startOfDay = now.Date;
+        var startOfDay = DateTime.SpecifyKind(now.Date, DateTimeKind.Utc);
         var endOfDay = startOfDay.AddDays(1);
 
         var todaysSprints = await _db.Sprints
@@ -56,8 +56,22 @@ public class StatsService : IStatsService
 
     private async Task<int> CalculateStreakAsync(DateTime startOfDayUtc, CancellationToken ct)
     {
+        if (startOfDayUtc.Kind != DateTimeKind.Utc)
+        {
+            startOfDayUtc = DateTime.SpecifyKind(startOfDayUtc, DateTimeKind.Utc);
+        }
+
         var lookbackStart = startOfDayUtc.Subtract(StreakLookbackWindow);
+        if (lookbackStart.Kind != DateTimeKind.Utc)
+        {
+            lookbackStart = DateTime.SpecifyKind(lookbackStart, DateTimeKind.Utc);
+        }
+
         var endExclusive = startOfDayUtc.AddDays(1);
+        if (endExclusive.Kind != DateTimeKind.Utc)
+        {
+            endExclusive = DateTime.SpecifyKind(endExclusive, DateTimeKind.Utc);
+        }
 
         var completionsByDay = await _db.Sprints
             .Where(s => s.Status == SprintStatus.Completed && s.CompletedAt >= lookbackStart && s.CompletedAt < endExclusive)
@@ -65,7 +79,9 @@ public class StatsService : IStatsService
             .Select(g => new { Date = g.Key, Count = g.Count() })
             .ToListAsync(ct);
 
-        var completionLookup = completionsByDay.ToDictionary(x => x.Date, x => x.Count);
+        var completionLookup = completionsByDay.ToDictionary(
+            x => DateTime.SpecifyKind(x.Date, DateTimeKind.Utc),
+            x => x.Count);
 
         var cursor = startOfDayUtc;
         var streak = 0;
