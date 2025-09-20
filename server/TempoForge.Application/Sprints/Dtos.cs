@@ -7,8 +7,8 @@ namespace TempoForge.Application.Sprints;
 /// Request payload used to start a new sprint for a project.
 /// </summary>
 public record StartSprintRequest(
-    [property: Required] Guid ProjectId,
-    [property: Range(1, 180)] int DurationMinutes
+    [Required] Guid ProjectId,
+    [Range(1, 180)] int DurationMinutes
 );
 
 /// <summary>

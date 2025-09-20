@@ -13,12 +13,15 @@ namespace TempoForge.Tests;
 public class SprintsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
-    public SprintsApiTests(ApiTestFixture fixture) => _fixture = fixture;
+    public SprintsApiTests(ApiTestFixture fixture)
+    {
+        _fixture = fixture;
+        _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
+    }
 
     [Fact]
     public async Task StartSprint_ReturnsCreated()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Alpha");
@@ -33,7 +36,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartSprint_WhenRunning_ReturnsConflict()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Conflict Project");
@@ -52,7 +54,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task CompleteSprint_UpdatesStatusAndStats()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Completion Project");
@@ -75,7 +76,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task AbortSprint_DoesNotAffectStats()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Abort Project");
@@ -96,7 +96,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task RecentSprints_ReturnsMostRecentEntries()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var alpha = await CreateProjectAsync(client, "Alpha Project");
@@ -122,7 +121,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task Progress_ReturnsSilverStandingWithPercent()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Progress Project");
@@ -144,7 +142,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartingSprint_UpdatesProjectLastUsed()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Chronos");
@@ -164,7 +161,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ToggleFavoritesEndpoint_ReflectsUpdatedFlag()
     {
-        await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
 

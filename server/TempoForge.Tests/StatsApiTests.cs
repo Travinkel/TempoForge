@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Net.Http.Json;
 using TempoForge.Domain.Entities;
@@ -14,12 +14,12 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     public StatsApiTests(ApiTestFixture fixture)
     {
         _fixture = fixture;
+        _fixture.ResetDatabaseAsync().GetAwaiter().GetResult();
     }
 
     [Fact]
     public async Task TodayStats_ReturnsMinutesSprintsAndStreak()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var response = await client.GetAsync("/api/stats/today");
@@ -35,7 +35,6 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ProgressStats_ReturnsStandingAndQuestSnapshot()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var response = await client.GetAsync("/api/stats/progress");
@@ -52,19 +51,18 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task FavoritesEndpoint_ReturnsOnlyFavorites()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var favorites = await client.GetFromJsonAsync<List<ProjectResponse>>("/api/projects/favorites");
         Assert.NotNull(favorites);
-        Assert.NotEmpty(favorites!);
-        Assert.All(favorites!, project => Assert.True(project.isFavorite));
+        var favoriteList = favorites!;
+        Assert.Single(favoriteList);
+        Assert.True(favoriteList[0].isFavorite);
     }
 
     [Fact]
     public async Task RecentSprintsEndpoint_ReturnsLatestFiveWithProjectNames()
     {
-        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var results = await client.GetFromJsonAsync<List<RecentSprintResponse>>("/api/sprints/recent");

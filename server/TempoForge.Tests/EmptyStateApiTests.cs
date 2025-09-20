@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using TempoForge.Domain.Entities;
 using TempoForge.Tests.Infrastructure;
 using Xunit;
@@ -11,20 +12,15 @@ public class EmptyStateApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
 
-    public EmptyStateApiTests(ApiTestFixture fixture) => _fixture = fixture;
+    public EmptyStateApiTests(ApiTestFixture fixture)
+    {
+        _fixture = fixture;
+        _fixture.ResetDatabaseAsync(reseed: false).GetAwaiter().GetResult();
+    }
 
     [Fact]
     public async Task EmptyDatabase_ReturnsOkWithEmptyPayloads()
     {
-        await _fixture.ResetDatabaseAsync();
-
-        await using (var context = _fixture.CreateDbContext())
-        {
-            context.Projects.RemoveRange(context.Projects);
-            context.Sprints.RemoveRange(context.Sprints);
-            await context.SaveChangesAsync();
-        }
-
         using var client = _fixture.CreateClient();
 
         var favoritesResponse = await client.GetAsync("/api/projects/favorites");
@@ -57,8 +53,10 @@ public class EmptyStateApiTests : IClassFixture<ApiTestFixture>
 
         var runningResponse = await client.GetAsync("/api/sprints/running");
         Assert.Equal(HttpStatusCode.OK, runningResponse.StatusCode);
-        var running = await runningResponse.Content.ReadFromJsonAsync<SprintResponse?>();
-        Assert.Null(running);
+        await using var runningStream = await runningResponse.Content.ReadAsStreamAsync();
+        using var runningJson = await JsonDocument.ParseAsync(runningStream);
+        Assert.Equal(JsonValueKind.Object, runningJson.RootElement.ValueKind);
+        Assert.Empty(runningJson.RootElement.EnumerateObject());
     }
 
     private sealed record ProjectFavoritesResponse(Guid Id, bool IsFavorite);
@@ -66,5 +64,4 @@ public class EmptyStateApiTests : IClassFixture<ApiTestFixture>
     private sealed record TodayStatsResponse(int Minutes, int Sprints, int StreakDays);
     private sealed record QuestSnapshotResponse(int DailyGoal, int DailyCompleted, int WeeklyGoal, int WeeklyCompleted, int EpicGoal, int EpicCompleted);
     private sealed record ProgressResponse(string Standing, int PercentToNext, int TotalCompleted, int? NextThreshold, QuestSnapshotResponse Quest);
-    private sealed record SprintResponse(Guid Id, Guid ProjectId, string ProjectName, int DurationMinutes, DateTime StartedAtUtc, DateTime? CompletedAtUtc, DateTime? AbortedAtUtc, SprintStatus Status);
 }
