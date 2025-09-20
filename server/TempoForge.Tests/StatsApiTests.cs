@@ -19,12 +19,7 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task TodayStats_ReturnsMinutesSprintsAndStreak()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var response = await client.GetAsync("/api/stats/today");
@@ -40,12 +35,7 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ProgressStats_ReturnsStandingAndQuestSnapshot()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var response = await client.GetAsync("/api/stats/progress");
@@ -62,12 +52,7 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task FavoritesEndpoint_ReturnsOnlyFavorites()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var favorites = await client.GetFromJsonAsync<List<ProjectResponse>>("/api/projects/favorites");
@@ -79,12 +64,7 @@ public class StatsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task RecentSprintsEndpoint_ReturnsLatestFiveWithProjectNames()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var results = await client.GetFromJsonAsync<List<RecentSprintResponse>>("/api/sprints/recent");

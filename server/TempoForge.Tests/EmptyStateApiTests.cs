@@ -16,9 +16,14 @@ public class EmptyStateApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task EmptyDatabase_ReturnsOkWithEmptyPayloads()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
+
+        await using (var context = _fixture.CreateDbContext())
+        {
+            context.Projects.RemoveRange(context.Projects);
+            context.Sprints.RemoveRange(context.Sprints);
+            await context.SaveChangesAsync();
+        }
 
         using var client = _fixture.CreateClient();
 

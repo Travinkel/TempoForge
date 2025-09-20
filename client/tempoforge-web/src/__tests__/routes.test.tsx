@@ -1,27 +1,25 @@
 import React from "react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { render, screen } from "@testing-library/react";
+import Dashboard, { DashboardShell } from "../pages/Dashboard";
+import WorkPage from "../pages/WorkPage";
+import Settings from "../pages/Settings";
 
-jest.mock("../pages/Dashboard", () => ({
+vi.mock("../pages/Dashboard", () => ({
   __esModule: true,
   default: () => <div>Dashboard Page</div>,
   DashboardShell: ({ children }: { children: React.ReactNode }) => <div data-testid="shell">{children}</div>,
 }));
 
-jest.mock("../pages/WorkPage", () => ({
+vi.mock("../pages/WorkPage", () => ({
   __esModule: true,
   default: () => <div>Work Page</div>,
 }));
 
-jest.mock("../pages/Settings", () => ({
+vi.mock("../pages/Settings", () => ({
   __esModule: true,
   default: () => <div>Settings Page</div>,
 }));
-
-const Dashboard = require("../pages/Dashboard").default;
-const { DashboardShell } = require("../pages/Dashboard");
-const WorkPage = require("../pages/WorkPage").default;
-const Settings = require("../pages/Settings").default;
 
 const renderRoute = (path: string) =>
   render(

@@ -1,4 +1,4 @@
-﻿name: Build & Test (.NET + Testcontainers)
+name: Build, Test & Deploy
 
 on:
   push:
@@ -24,21 +24,32 @@ jobs:
       - name: Build
         run: dotnet build TempoForge.sln --configuration Release --no-restore
 
-      - name: Run tests
+      - name: Backend tests
         env:
-          DOTNET_RUNNING_IN_CONTAINER: "false"
           TESTCONTAINERS_RYUK_DISABLED: "true"
         run: dotnet test TempoForge.sln --no-build --verbosity normal
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Frontend tests
+        working-directory: client/tempoforge-web
+        run: |
+          corepack enable
+          pnpm install --frozen-lockfile
+          pnpm test -- --ci
+
   deploy:
-    runs-on: ubuntu-latest
     needs: build-test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.build-test.result == 'success'
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Flyctl
+      - name: Install Flyctl
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API
