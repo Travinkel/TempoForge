@@ -1,9 +1,4 @@
-import axios from 'axios'
-import { API_BASE } from '../config'
-
-const api = axios.create({
-  baseURL: API_BASE,
-})
+import http from './http'
 
 export interface Project {
   id: string
@@ -25,12 +20,12 @@ export interface ProjectUpdateRequest {
 
 export async function getProjects(favorites?: boolean): Promise<Project[]> {
   const query = favorites ? '?favorites=true' : ''
-  const { data } = await api.get<Project[]>(`/api/projects${query}`)
+  const { data } = await http.get<Project[]>(`/api/projects${query}`)
   return data
 }
 
 export async function getFavoriteProjects(): Promise<Project[]> {
-  const { data } = await api.get<Project[]>(`/api/projects/favorites`)
+  const { data } = await http.get<Project[]>(`/api/projects/favorites`)
   return data
 }
 
@@ -43,7 +38,7 @@ export async function addProject({
     isFavorite,
   }
 
-  await api.post('/api/projects', payload)
+  await http.post('/api/projects', payload)
 }
 
 export async function updateProject(id: string, patch: ProjectUpdateRequest) {
@@ -57,9 +52,9 @@ export async function updateProject(id: string, patch: ProjectUpdateRequest) {
     payload.isFavorite = patch.isFavorite
   }
 
-  await api.put(`/api/projects/${id}`, payload)
+  await http.put(`/api/projects/${id}`, payload)
 }
 
 export async function deleteProject(id: string) {
-  await api.delete(`/api/projects/${id}`)
+  await http.delete(`/api/projects/${id}`)
 }
