@@ -27,6 +27,8 @@ jobs:
       - name: Run backend tests
         env:
           TESTCONTAINERS_RYUK_DISABLED: "true"
+          ASPNETCORE_ENVIRONMENT: Test
+          DOTNET_ENVIRONMENT: Test
         run: dotnet test TempoForge.sln --no-build --configuration Release --verbosity normal
 
       - name: Setup Node
