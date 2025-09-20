@@ -18,8 +18,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartSprint_ReturnsCreated()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -35,8 +33,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartSprint_WhenRunning_ReturnsConflict()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -56,8 +52,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task CompleteSprint_UpdatesStatusAndStats()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -81,8 +75,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task AbortSprint_DoesNotAffectStats()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -104,8 +96,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task RecentSprints_ReturnsMostRecentEntries()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -132,8 +122,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task Progress_ReturnsSilverStandingWithPercent()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -156,8 +144,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task StartingSprint_UpdatesProjectLastUsed()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();
@@ -178,8 +164,6 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ToggleFavoritesEndpoint_ReflectsUpdatedFlag()
     {
-        if (!_fixture.DockerAvailable) return;
-
         await _fixture.ResetDatabaseAsync();
         // Arrange + Act + Assert
         using var client = _fixture.CreateClient();

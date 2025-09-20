@@ -14,22 +14,13 @@ namespace TempoForge.Tests;
 public class QuestsApiTests : IClassFixture<ApiTestFixture>
 {
     private readonly ApiTestFixture _fixture;
-    private readonly bool _dockerAvailable;
-    private readonly string _skipReason;
 
-    public QuestsApiTests(ApiTestFixture fixture)
-    {
-        _fixture = fixture;
-        _dockerAvailable = fixture.DockerAvailable;
-        _skipReason = fixture.SkipReason;
-    }
+    public QuestsApiTests(ApiTestFixture fixture) => _fixture = fixture;
 
     [Fact]
     public async Task ActiveQuests_ReturnsSeededDefinitions()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var response = await client.GetAsync("/api/quests/active/details");
@@ -48,9 +39,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task CompletingSprint_AdvancesDailyWeeklyAndEpic()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Quest Progress");
 
@@ -67,9 +56,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task DailyQuest_ResetsWhenExpired()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Daily Reset");
 
@@ -93,9 +80,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task WeeklyQuest_ResetsAtNextWeekBoundary()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Weekly Reset");
 
@@ -119,9 +104,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task EpicQuest_PersistsAcrossResets()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Epic Persistence");
 
@@ -150,9 +133,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ClaimQuestReward_ReturnsConflictWhenIncomplete()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var quests = await client.GetFromJsonAsync<ActiveQuestsResponse>("/api/quests/active/details");
@@ -165,9 +146,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ClaimQuestReward_SucceedsOnceGoalReached()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Quest Claim");
 
@@ -192,9 +171,7 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task QuestsEndpoint_ReturnsAggregatedProgress()
     {
-        if (ShouldSkip()) return;
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Aggregated Quests");
 
@@ -223,17 +200,6 @@ public class QuestsApiTests : IClassFixture<ApiTestFixture>
 
         var epic = questList.Single(q => q.Type == "Epic");
         Assert.Equal(3, epic.Progress);
-    }
-
-    private bool ShouldSkip()
-    {
-        if (_dockerAvailable)
-        {
-            return false;
-        }
-
-        Console.WriteLine($"Skipping test because Docker is unavailable: {_skipReason}.");
-        return true;
     }
 
     private static async Task<Guid> CreateProjectAsync(HttpClient client, string name, bool isFavorite = false)

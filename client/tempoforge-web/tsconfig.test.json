@@ -4,7 +4,8 @@
     "module": "ESNext",
     "moduleResolution": "bundler",
     "types": [
-      "jest",
+      "vitest/globals",
+      "vitest/importMeta",
       "node"
     ],
     "isolatedModules": true,

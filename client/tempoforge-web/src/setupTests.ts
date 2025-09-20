@@ -1,4 +1,4 @@
-import "@testing-library/jest-dom";
+import "@testing-library/jest-dom/vitest";
 
 if (typeof window !== "undefined" && window.HTMLDialogElement) {
   const dialogProto = window.HTMLDialogElement.prototype as any;

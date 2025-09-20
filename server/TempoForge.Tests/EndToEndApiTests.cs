@@ -19,12 +19,7 @@ public class EndToEndApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task SprintLifecycle_UpdatesProgressStats()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
         var projectId = await CreateProjectAsync(client, "Lifecycle Project");
 
@@ -42,12 +37,7 @@ public class EndToEndApiTests : IClassFixture<ApiTestFixture>
     [Fact]
     public async Task ToggleFavorite_PersistsInFavoritesEndpoint()
     {
-        if (!_fixture.DockerAvailable)
-        {
-            return;
-        }
-
-        await _fixture.ResetDatabaseAsync(reseed: true);
+        await _fixture.ResetDatabaseAsync();
         using var client = _fixture.CreateClient();
 
         var projectId = await CreateProjectAsync(client, "Favorite Toggle", isFavorite: false);

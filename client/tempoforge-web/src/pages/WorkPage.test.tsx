@@ -5,13 +5,13 @@ import WorkPage from "./WorkPage";
 import { getProjects, getFavoriteProjects } from "../api/projects";
 import { useSprintContext } from "../context/SprintContext";
 
-jest.mock("../config", () => ({ API_BASE: "http://localhost:5000" }));
-jest.mock("../api/projects");
-jest.mock("../context/SprintContext");
+vi.mock("../config", () => ({ API_BASE: "http://localhost:5000" }));
+vi.mock("../api/projects");
+vi.mock("../context/SprintContext");
 
-const mockedGetProjects = getProjects as jest.MockedFunction<typeof getProjects>;
-const mockedGetFavoriteProjects = getFavoriteProjects as jest.MockedFunction<typeof getFavoriteProjects>;
-const mockedUseSprintContext = useSprintContext as jest.MockedFunction<typeof useSprintContext>;
+const mockedGetProjects = vi.mocked(getProjects);
+const mockedGetFavoriteProjects = vi.mocked(getFavoriteProjects);
+const mockedUseSprintContext = vi.mocked(useSprintContext);
 
 describe("WorkPage", () => {
   beforeEach(() => {
@@ -47,9 +47,9 @@ describe("WorkPage", () => {
       active: false,
       isCritical: false,
       canStart: true,
-      startSprint: jest.fn().mockResolvedValue(undefined),
-      cancelSprint: jest.fn().mockResolvedValue(undefined),
-      completeSprint: jest.fn().mockResolvedValue(undefined),
+      startSprint: vi.fn().mockResolvedValue(undefined),
+      cancelSprint: vi.fn().mockResolvedValue(undefined),
+      completeSprint: vi.fn().mockResolvedValue(undefined),
       progressStats: {
         standing: "Bronze",
         completedSprints: 10,
@@ -79,12 +79,12 @@ describe("WorkPage", () => {
         },
       ],
       metricsLoading: false,
-      refreshMetrics: jest.fn(),
+      refreshMetrics: vi.fn(),
     } as any);
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
   });
 
   it("renders projects, recent sprints, and metrics", async () => {
@@ -99,9 +99,15 @@ describe("WorkPage", () => {
     });
 
     await waitFor(() => {
+      expect(mockedGetFavoriteProjects).toHaveBeenCalled();
+    });
+
+    await waitFor(() => {
       expect(screen.getAllByText(/Forge HUD/i).length).toBeGreaterThan(0);
     });
     expect(screen.getByText("API Hardening")).toBeInTheDocument();
+    expect(screen.getByText(/Quick Start/i)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /New Task/i })).toBeInTheDocument();
     expect(screen.getByText(/Today's Stats/i)).toBeInTheDocument();
     expect(screen.getByText(/50m/)).toBeInTheDocument();
     expect(screen.getByText(/Rank Progress/i)).toBeInTheDocument();
