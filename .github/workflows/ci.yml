@@ -29,7 +29,25 @@ jobs:
           TESTCONTAINERS_RYUK_DISABLED: "true"
           ASPNETCORE_ENVIRONMENT: Test
           DOTNET_ENVIRONMENT: Test
-        run: dotnet test TempoForge.sln --no-build --configuration Release --verbosity normal
+        run: |
+          mkdir -p TestResults
+          dotnet test TempoForge.sln --no-build --configuration Release --verbosity normal \
+            --logger "trx;LogFileName=TestResults/backend-tests.trx"
+
+      - name: Upload backend test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-test-results
+          path: TestResults/backend-tests.trx
+
+      - name: Publish backend test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend Tests
+          path: TestResults/backend-tests.trx
+          reporter: dotnet-trx
 
       - name: Setup Node
         uses: actions/setup-node@v4
