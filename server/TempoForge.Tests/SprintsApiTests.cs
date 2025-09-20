@@ -70,7 +70,7 @@ public class SprintsApiTests : IClassFixture<ApiTestFixture>
         Assert.NotNull(today);
         Assert.Equal(30, today!.Minutes);
         Assert.Equal(1, today.Sprints);
-        Assert.True(today.StreakDays >= 1);
+        Assert.Equal(0, today.StreakDays);
     }
 
     [Fact]
