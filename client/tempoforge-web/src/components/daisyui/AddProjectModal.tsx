@@ -1,6 +1,6 @@
 import React from "react";
-import { createPortal } from "react-dom";
 import type { ProjectCreateRequest } from "../../api/projects";
+import ModalShell from "./ModalShell";
 
 type AddProjectModalProps = {
   isOpen: boolean;
@@ -38,45 +38,7 @@ export default function AddProjectModal({
     setError(null);
   }, [isOpen]);
 
-  React.useEffect(() => {
-    if (!isOpen || typeof document === "undefined") {
-      return undefined;
-    }
-
-    const { body } = document;
-    const previousOverflow = body.style.overflow;
-    body.classList.add("modal-open");
-    body.style.overflow = "hidden";
-
-    return () => {
-      body.classList.remove("modal-open");
-      body.style.overflow = previousOverflow;
-    };
-  }, [isOpen]);
-
-  React.useEffect(() => {
-    if (!isOpen) {
-      return undefined;
-    }
-
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        handleClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [handleClose, isOpen]);
-
   if (!isOpen) {
-    return null;
-  }
-
-  if (typeof document === "undefined") {
     return null;
   }
 
@@ -105,13 +67,15 @@ export default function AddProjectModal({
     }
   };
 
-  const modalContent = (
-    <div
-      className="modal modal-open"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby={titleId}
-      aria-describedby={error ? errorId : descriptionId}
+  const describedBy = error ? errorId : descriptionId;
+
+  return (
+    <ModalShell
+      open={isOpen}
+      onClose={handleClose}
+      labelledBy={titleId}
+      describedBy={describedBy}
+      lockBodyScroll
     >
       <div className="modal-box space-y-4 bg-base-200 text-base-content">
         <h2 id={titleId} className="text-lg font-semibold">
@@ -132,7 +96,7 @@ export default function AddProjectModal({
               autoFocus
               disabled={submitting}
               aria-invalid={error ? true : undefined}
-              aria-describedby={error ? errorId : descriptionId}
+              aria-describedby={describedBy}
             />
           </label>
 
@@ -172,9 +136,6 @@ export default function AddProjectModal({
           </div>
         </form>
       </div>
-      <div className="modal-backdrop bg-black/40" onClick={handleClose} role="presentation" />
-    </div>
+    </ModalShell>
   );
-
-  return createPortal(modalContent, document.body);
 }
