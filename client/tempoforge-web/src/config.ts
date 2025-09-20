@@ -1,4 +1,19 @@
-export const FALLBACK_API_BASE = 'https://tempoforge-api.fly.dev'
+const REMOTE_API_BASE = 'https://tempoforge-api.fly.dev'
+const LOCAL_API_BASE = 'http://localhost:5000'
+
+const inferFallbackBase = (): string => {
+  if (typeof window !== 'undefined') {
+    const { hostname } = window.location
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '::1') {
+      return LOCAL_API_BASE
+    }
+  }
+
+  return REMOTE_API_BASE
+}
+
+export const FALLBACK_API_BASE = inferFallbackBase()
 
 function normalizeBaseUrl(value: unknown): string {
   if (typeof value !== 'string') {
