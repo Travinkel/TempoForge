@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using TempoForge.Api;
 using TempoForge.Application.Projects;
 using TempoForge.Domain.Entities;
 
@@ -59,7 +60,7 @@ public class ProjectsController : ControllerBase
         var project = await _service.GetAsync(id, ct);
         if (project is null)
         {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
+            return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
         }
 
         return Ok(ProjectDto.From(project));
@@ -88,7 +89,7 @@ public class ProjectsController : ControllerBase
         var updated = await _service.UpdateAsync(id, dto, ct);
         if (updated is null)
         {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
+            return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
         }
 
         return Ok(ProjectDto.From(updated));
@@ -105,18 +106,10 @@ public class ProjectsController : ControllerBase
         var deleted = await _service.DeleteAsync(id, ct);
         if (!deleted)
         {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
+            return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Project not found", $"Project '{id}' was not found."));
         }
 
         return NoContent();
     }
 
-    private ProblemDetails CreateProblem(int statusCode, string title, string detail)
-        => new()
-        {
-            Title = title,
-            Status = statusCode,
-            Detail = detail,
-            Instance = HttpContext.Request.Path
-        };
 }

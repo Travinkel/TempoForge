@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using TempoForge.Api;
 using TempoForge.Application.Sprints;
 using TempoForge.Domain.Entities;
 
@@ -32,7 +33,7 @@ public class SprintsController : ControllerBase
         var sprint = await _service.GetAsync(id, ct);
         if (sprint is null)
         {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
+            return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
         }
 
         return Ok(SprintDto.From(sprint));
@@ -54,11 +55,11 @@ public class SprintsController : ControllerBase
         }
         catch (KeyNotFoundException ex)
         {
-            return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Project not found", ex.Message));
+            return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Project not found", ex.Message));
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(CreateProblem(StatusCodes.Status409Conflict, "Sprint already running", ex.Message));
+            return Conflict(this.CreateProblem(StatusCodes.Status409Conflict, "Sprint already running", ex.Message));
         }
     }
 
@@ -76,14 +77,14 @@ public class SprintsController : ControllerBase
             var sprint = await _service.CompleteAsync(id, ct);
             if (sprint is null)
             {
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
             }
 
             return Ok(SprintDto.From(sprint));
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(CreateProblem(StatusCodes.Status409Conflict, "Sprint cannot be completed", ex.Message));
+            return Conflict(this.CreateProblem(StatusCodes.Status409Conflict, "Sprint cannot be completed", ex.Message));
         }
     }
 
@@ -101,14 +102,14 @@ public class SprintsController : ControllerBase
             var sprint = await _service.AbortAsync(id, ct);
             if (sprint is null)
             {
-                return NotFound(CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
+                return NotFound(this.CreateProblem(StatusCodes.Status404NotFound, "Sprint not found", $"Sprint '{id}' was not found."));
             }
 
             return Ok(SprintDto.From(sprint));
         }
         catch (InvalidOperationException ex)
         {
-            return Conflict(CreateProblem(StatusCodes.Status409Conflict, "Sprint cannot be aborted", ex.Message));
+            return Conflict(this.CreateProblem(StatusCodes.Status409Conflict, "Sprint cannot be aborted", ex.Message));
         }
     }
 
@@ -140,14 +141,6 @@ public class SprintsController : ControllerBase
         return Ok(projection);
     }
 
-    private ProblemDetails CreateProblem(int statusCode, string title, string detail)
-        => new()
-        {
-            Title = title,
-            Status = statusCode,
-            Detail = detail,
-            Instance = HttpContext.Request.Path
-        };
 }
 
 
