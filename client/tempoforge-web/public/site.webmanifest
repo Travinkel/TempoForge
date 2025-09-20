@@ -1,0 +1,21 @@
+{
+  "name": "TempoForge",
+  "short_name": "TempoForge",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#110805",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "/assets/logo-primary.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/logo-primary-no-arms-no-background-no-clock-background.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ]
+}
